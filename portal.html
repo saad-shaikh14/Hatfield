@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR Admin — HatfieldHome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent:      #c8785a;
+      --accent-deep: #b3623f;
+      --accent-soft: #fdf0ea;
+      --sage:        #82c87a;
+      --sage-dark:   #5a9a52;
+      --ink:         #1a1612;
+      --muted:       #9a928c;
+      --bg:          #faf8f5;
+      --bg-soft:     #f5f2ed;
+      --border:      #e5ddd5;
+      --border-2:    #d4ccc6;
+      --white:       #ffffff;
+      --radius:      10px;
+    }
+    body { font-family: Jost, Arial, sans-serif; background: var(--bg); color: var(--ink); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ---- LOGIN ---- */
+    #loginScreen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--bg); padding: 24px;
+    }
+    .login-card {
+      background: white; border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 8px 40px rgba(26,22,18,0.1); border-top: 4px solid var(--accent);
+    }
+    .login-card .logo { font-family: 'Gilda Display', serif; font-size: 1.5rem; text-align: center; display: block; margin-bottom: 20px; }
+    .login-card .logo span { color: var(--accent); }
+    .login-card h1 { font-size: 1.3rem; color: var(--ink); text-align: center; margin-bottom: 4px; font-weight: 700; }
+    .login-card .sub { font-size: 0.82rem; color: var(--muted); text-align: center; margin-bottom: 28px; }
+    .lf { margin-bottom: 14px; }
+    .lf label { display: block; font-size: 0.83rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+    .lf input { width: 100%; padding: 11px 13px; border: 1.5px solid var(--border-2); border-radius: 8px; font-family: Jost, Arial, sans-serif; font-size: 0.93rem; }
+    .lf input:focus { outline: none; border-color: var(--accent); }
+    .login-err { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 9px 13px; border-radius: 8px; font-size: 0.83rem; margin-bottom: 14px; display: none; }
+    .login-btn { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.97rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .login-btn:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ---- ADMIN SHELL ---- */
+    #adminApp { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    .adm-header {
+      background: rgba(250,248,245,0.98); border-bottom: 1px solid var(--border);
+      height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; box-shadow: 0 1px 12px rgba(26,22,18,0.06);
+    }
+    .adm-header-l { display: flex; align-items: center; gap: 14px; }
+    .adm-header .logo { font-family: 'Gilda Display', serif; font-size: 1.2rem; }
+    .adm-header .logo span { color: var(--accent); }
+    .adm-header-divider { width: 1px; height: 28px; background: var(--border-2); }
+    .adm-header-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); padding: 4px 11px; background: var(--accent-soft); border-radius: 50px; }
+    .adm-header-r { display: flex; align-items: center; gap: 12px; }
+    .adm-email { font-size: 0.8rem; color: var(--muted); }
+    .signout-btn { background: transparent; border: 1.5px solid var(--border-2); color: var(--ink); padding: 6px 14px; border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .signout-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .stats-bar { background: var(--bg-soft); border-bottom: 1px solid var(--border); height: 48px; padding: 0 24px; display: flex; align-items: center; gap: 24px; flex-shrink: 0; }
+    .stat { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .stat-n { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .stat-l { color: var(--muted); }
+    .stat-div { width: 1px; height: 22px; background: var(--border-2); }
+
+    .adm-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ---- LIST PANEL ---- */
+    .list-panel { width: 380px; flex-shrink: 0; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+
+    .list-controls { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+    .list-search-input {
+      width: 100%; padding: 9px 12px 9px 34px; border: 1.5px solid var(--border-2); border-radius: 8px;
+      font-family: Jost, Arial, sans-serif; font-size: 0.87rem;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center;
+    }
+    .list-search-input:focus { outline: none; border-color: var(--accent); background-color: white; }
+    .filter-select { width: 100%; padding: 8px 11px; border: 1.5px solid var(--border-2); border-radius: 8px; font-family: Jost, Arial, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--ink); background: white; cursor: pointer; }
+    .filter-select:focus { outline: none; border-color: var(--accent); }
+
+    .list-count { padding: 7px 14px; font-size: 0.74rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); flex-shrink: 0; letter-spacing: 0.3px; text-transform: uppercase; }
+
+    .app-list { flex: 1; overflow-y: auto; }
+    .app-row { padding: 13px 14px; border-bottom: 1px solid #f0ebe5; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; transition: background 0.12s; }
+    .app-row:hover { background: var(--bg); }
+    .app-row.sel { background: var(--accent-soft); border-left: 3px solid var(--accent); padding-left: 11px; }
+    .app-name { font-weight: 700; font-size: 0.91rem; color: var(--ink); margin-bottom: 2px; }
+    .app-role { font-size: 0.77rem; color: var(--muted); }
+    .app-right { text-align: right; flex-shrink: 0; margin-left: 10px; }
+    .app-date { font-size: 0.71rem; color: var(--muted); margin-bottom: 5px; }
+    .app-empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 0.88rem; }
+
+    /* ---- BADGES ---- */
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 50px; font-size: 0.69rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .b-cv_received       { background: #FEF3C7; color: #92400E; }
+    .b-form1_complete    { background: #DBEAFE; color: #1E40AF; }
+    .b-interview_invited { background: #EDE9FE; color: #5B21B6; }
+    .b-rejected          { background: #F3F4F6; color: #6B7280; }
+
+    /* ---- DETAIL PANEL ---- */
+    .detail-panel { flex: 1; overflow-y: auto; background: var(--bg-soft); position: relative; }
+    .detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); gap: 12px; }
+    .detail-empty svg { opacity: 0.15; }
+
+    .detail-header { background: white; border-bottom: 1px solid var(--border); padding: 20px 24px; position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 8px rgba(26,22,18,0.05); }
+    .detail-name { font-size: 1.35rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .detail-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .role-tag { background: var(--bg-soft); color: var(--accent); font-size: 0.79rem; font-weight: 700; padding: 3px 10px; border-radius: 50px; border: 1px solid var(--border); }
+    .detail-date { font-size: 0.79rem; color: var(--muted); }
+
+    .detail-body { padding: 20px 24px; max-width: 760px; }
+
+    .info-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .info-item { background: white; border-radius: var(--radius); padding: 12px 14px; border: 1px solid var(--border); flex: 0 1 auto; min-width: 140px; max-width: 100%; }
+    .info-item label { display: block; font-size: 0.71rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-item span, .info-item a { display: block; font-size: 0.9rem; color: var(--ink); font-weight: 600; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .info-item a:hover { color: var(--accent); }
+
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .btn-dl { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--accent); color: white; border: none; border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .btn-dl:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-dl:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-invite { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: transparent; color: var(--muted); border: 1.5px solid var(--border-2); border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.85rem; font-weight: 700; cursor: not-allowed; opacity: 0.5; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s; }
+    .btn-invite.enabled { color: var(--sage-dark); border-color: var(--sage-dark); opacity: 1; cursor: pointer; }
+    .btn-invite.enabled:hover { background: var(--sage-dark); color: white; transform: translateY(-1px); }
+    .btn-scorecard { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.2s; }
+    .btn-scorecard:hover { background: var(--accent); color: white; transform: translateY(-1px); }
+    .btn-scorecard:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* Tabs */
+    .tab-nav { display:flex; gap:4px; margin:18px 0 0; border-bottom:2px solid var(--border); }
+    .tab-btn { padding:9px 18px; border:none; background:none; font-family:Jost,Arial,sans-serif; font-size:0.88rem; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color 0.15s,border-color 0.15s; }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* Scorecard form */
+    .sc-domain-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f3f4f6; }
+    .sc-domain-row:last-child { border-bottom:none; }
+    .sc-domain-label { font-size:0.88rem; color:#374151; }
+    .sc-stars { display:flex; gap:4px; }
+    .sc-star { font-size:1.3rem; cursor:pointer; color:#d1d5db; transition:color 0.1s; line-height:1; }
+    .sc-star.on { color:var(--accent); }
+    .sc-star:hover ~ .sc-star { color:#d1d5db !important; }
+    .outcome-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+    .outcome-btn { padding:9px 22px; border-radius:50px; border:1.5px solid #d1d5db; background:#fff; font-family:Jost,Arial,sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.15s; color:#374151; }
+    .outcome-btn.sel-PASS { background:#dcfce7; border-color:#166534; color:#166534; }
+    .outcome-btn.sel-HOLD { background:#fef3c7; border-color:#92400e; color:#92400e; }
+    .outcome-btn.sel-FAIL { background:#fee2e2; border-color:#991b1b; color:#991b1b; }
+    .sc-save-row { display:flex; align-items:center; gap:12px; margin-top:16px; }
+    .sc-save-btn { padding:11px 28px; background:var(--accent); color:#fff; border:none; border-radius:50px; font-family:Jost,Arial,sans-serif; font-size:0.9rem; font-weight:700; cursor:pointer; transition:background 0.2s; }
+    .sc-save-btn:hover { background:var(--accent-deep); }
+    .sc-save-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .sc-save-ok { font-size:0.85rem; color:var(--sage-dark); font-weight:700; display:none; }
+
+    /* MCQ score card */
+    .mcq-score-card { background:#f8f9fa; border-radius:10px; padding:16px 18px; margin-bottom:4px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+    .mcq-score-big { font-size:2rem; font-weight:800; }
+    .mcq-pass { color:#166534; } .mcq-fail { color:#991b1b; }
+    .mcq-sections { flex:1; min-width:180px; }
+    .mcq-sec-row { display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; color:#555; }
+    .mcq-sec-row span:last-child { font-weight:700; color:var(--ink); }
+
+    /* Toasts */
+    #inviteToast, #scorecardToast { position:fixed; bottom:28px; right:28px; z-index:200; color:#fff; padding:14px 22px; border-radius:10px; font:600 14px Jost; display:flex; align-items:center; gap:10px; box-shadow:0 8px 28px rgba(0,0,0,0.18); transform:translateY(20px); opacity:0; transition:opacity 0.3s, transform 0.3s; pointer-events:none; }
+    #inviteToast { background:var(--sage-dark); }
+    #scorecardToast { background:var(--accent); bottom:80px; }
+    #inviteToast.show, #scorecardToast.show { opacity:1; transform:translateY(0); pointer-events:auto; }
+    #inviteToast svg, #scorecardToast svg { flex-shrink:0; }
+    /* Invite modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(26,22,18,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .mcq-q-block { margin-bottom:16px; padding:14px 16px; border-radius:10px; border:1px solid #eee; background:#fafafa; }
+    .mcq-q-text { font-size:0.88rem; font-weight:700; color:var(--ink); margin-bottom:10px; line-height:1.5; }
+    .mcq-opt { display:flex; align-items:flex-start; gap:10px; padding:7px 10px; border-radius:7px; font-size:0.83rem; line-height:1.5; margin-bottom:4px; }
+    .mcq-opt.correct { background:#dcfce7; color:#166534; font-weight:700; }
+    .mcq-opt.wrong   { background:#fee2e2; color:#991b1b; font-weight:700; }
+    .mcq-opt.neutral { color:#555; }
+    .mcq-opt-key { min-width:18px; font-weight:700; }
+    .mcq-section-head { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin:18px 0 8px; }
+    .modal-card { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(26,22,18,0.18); border-top: 4px solid var(--sage-dark); }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .modal-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 22px; }
+    .mf { margin-bottom: 14px; }
+    .mf label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+    .mf input, .mf textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-2); border-radius: 8px; font-family: Jost, Arial, sans-serif; font-size: 0.9rem; color: var(--ink); }
+    .mf input:focus, .mf textarea:focus { outline: none; border-color: var(--sage-dark); }
+    .mf textarea { min-height: 80px; resize: vertical; }
+    .mf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+    .modal-cancel { padding: 10px 20px; background: transparent; border: 1.5px solid var(--border-2); border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.87rem; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .modal-send { padding: 10px 24px; background: var(--sage-dark); color: white; border: none; border-radius: 50px; font-family: Jost, Arial, sans-serif; font-size: 0.87rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .modal-send:hover { background: #4a8a44; }
+    .modal-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal-err { color: #dc2626; font-size: 0.82rem; margin-top: 10px; display: none; }
+
+    /* Section cards */
+    .sec-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); border-top: 3px solid var(--accent); margin-bottom: 14px; overflow: hidden; }
+    .sec-head { padding: 13px 16px; font-weight: 700; font-size: 0.87rem; color: var(--ink); border-bottom: 1px solid var(--border); }
+    .sec-body { padding: 16px; }
+
+    /* Status & notes */
+    .status-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .hr-notes { width: 100%; min-height: 90px; padding: 9px 11px; border: 1.5px solid var(--border-2); border-radius: 8px; font-family: Jost, Arial, sans-serif; font-size: 0.88rem; resize: vertical; margin-bottom: 10px; }
+    .hr-notes:focus { outline: none; border-color: var(--accent); }
+    .save-row { display: flex; align-items: center; gap: 10px; }
+    .save-btn { background: var(--sage-dark); color: white; border: none; padding: 9px 22px; border-radius: 50px; font-family: Jost, Arial, sans-serif; font-weight: 700; font-size: 0.87rem; cursor: pointer; transition: background 0.2s; }
+    .save-btn:hover { background: #4a8a44; }
+    .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .save-ok { font-size: 0.8rem; color: var(--sage-dark); font-weight: 700; display: none; }
+    .btn-reject { padding:7px 15px; background:transparent; color:#991b1b; border:1.5px solid #991b1b; border-radius:50px; font-family:Jost,Arial,sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; transition:background 0.15s,color 0.15s; }
+    .btn-reject:hover { background:#991b1b; color:#fff; }
+
+    /* Form1 data */
+    .f1-section-title { font-weight: 700; color: var(--accent); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 9px; }
+    .f1-section { margin-bottom: 18px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table td { padding: 6px 0; vertical-align: top; }
+    .data-table td:first-child { width: 130px; color: var(--muted); font-weight: 600; }
+    .data-entry { background: var(--bg); border-radius: 8px; padding: 11px 13px; margin-bottom: 8px; font-size: 0.84rem; border: 1px solid var(--border); }
+    .de-title { font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+    .de-row { display: flex; gap: 8px; margin-bottom: 3px; }
+    .de-k { color: var(--muted); min-width: 110px; font-size: 0.8rem; }
+    .de-v { color: var(--ink); font-size: 0.8rem; }
+    .no-data { color: var(--muted); font-size: 0.85rem; font-style: italic; }
+    .gap-entry { border-left: 3px solid #f59e0b; }
+
+    /* Spinner */
+    .spin { display: inline-block; width: 22px; height: 22px; border: 3px solid var(--border-2); border-top-color: var(--accent); border-radius: 50%; animation: _spin 0.75s linear infinite; }
+    @keyframes _spin { to { transform: rotate(360deg); } }
+
+    /* Timeline */
+    .timeline { padding: 4px 0; }
+    .tl-item { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-item:not(:last-child)::before { content: ''; position: absolute; left: 9px; top: 22px; width: 2px; bottom: 0; background: #e5e7eb; }
+    .tl-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #fff; }
+    .tl-dot.done { background: var(--sage-dark); }
+    .tl-dot.pending { background: #fff; border: 2px solid #d1d5db; }
+    .tl-label { font-size: 0.85rem; font-weight: 700; color: #111; line-height: 1.3; }
+    .tl-time { font-size: 0.77rem; color: #888; margin-top: 2px; }
+    .tl-time.pending { color: #bbb; font-style: italic; }
+    .tl-who-hr { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin-top: 1px; }
+    .tl-who-cand { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--sage-dark); margin-top: 1px; }
+
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      .adm-layout { flex-direction: column; }
+      .list-panel { width: 100%; border-right: none; max-height: 50vh; }
+      .detail-panel { min-height: 50vh; }
+      .adm-email { display: none; }
+      .detail-body { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <span class="logo">Hatfield<span>Home</span></span>
+    <h1>HR Admin Portal</h1>
+    <p class="sub">Authorised personnel only</p>
+    <div id="loginErr" class="login-err"></div>
+    <div class="lf"><label>Email</label><input type="email" id="lEmail" placeholder="your@email.com" autocomplete="email"></div>
+    <div class="lf"><label>Password</label><input type="password" id="lPass" placeholder="Password" autocomplete="current-password"></div>
+    <button class="login-btn" id="loginBtn" onclick="login()">Sign In</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN APP ===== -->
+<div id="adminApp">
+
+  <header class="adm-header">
+    <div class="adm-header-l">
+      <span class="logo">Hatfield<span>Home</span></span>
+      <div class="adm-header-divider"></div>
+      <span class="adm-header-title">HR Admin Portal</span>
+    </div>
+    <div class="adm-header-r">
+      <span class="adm-email" id="admEmail"></span>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-n" id="sTotal">—</span><span class="stat-l">Total</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-n" id="sForm">—</span><span class="stat-l">Form Complete</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-n" id="sInvited">—</span><span class="stat-l">Interview Invited</span></div>
+  </div>
+
+  <div class="adm-layout">
+
+    <!-- List -->
+    <div class="list-panel">
+      <div class="list-controls">
+        <input class="list-search-input" type="text" id="searchBox" placeholder="Search name or email…" oninput="onSearch()">
+        <select class="filter-select" id="filterSelect" onchange="setFilter(this.value)">
+          <option value="all">All Applications</option>
+          <option value="cv_received">CV Received</option>
+          <option value="form1_complete">Form Complete</option>
+          <option value="interview_invited">Interview Invited</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="list-count" id="listCount">&nbsp;</div>
+      <div class="app-list" id="appList">
+        <div class="app-empty"><div class="spin"></div></div>
+      </div>
+    </div>
+
+    <!-- Detail -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-empty" id="detailEmpty">
+        <svg width="60" height="60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        <p style="font-size:0.9rem;">Select an application to view</p>
+      </div>
+      <div id="detailContent" style="display:none;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success toast -->
+<div id="inviteToast">
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.25)"/><path d="M5 9l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Interview invite sent successfully
+</div>
+
+<!-- Scorecard link toast -->
+<div id="scorecardToast">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+  Competency test link copied to clipboard
+</div>
+
+<!-- Interview invite modal -->
+<div id="inviteModal" class="modal-backdrop" style="display:none" onclick="if(event.target===this)closeInvite()">
+  <div class="modal-card">
+    <div class="modal-title">Send Interview Invite</div>
+    <div class="modal-sub" id="inviteSubtitle"></div>
+    <div class="mf-row">
+      <div class="mf"><label>Interview Date *</label><input type="date" id="inv_date"></div>
+      <div class="mf"><label>Interview Time *</label><input type="time" id="inv_time"></div>
+    </div>
+    <div class="mf"><label>Location / Address *</label><input type="text" id="inv_location" placeholder="e.g. Hatfield Home, Watford, WD24 4DA"></div>
+    <div class="mf"><label>Additional Notes</label><textarea id="inv_notes" placeholder="e.g. Please bring proof of ID and right to work documents"></textarea></div>
+    <div class="modal-err" id="inviteErr"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeInvite()">Cancel</button>
+      <button class="modal-send" id="inviteSendBtn" onclick="sendInvite()">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scorecard link modal -->
+<div id="scorecardModal" class="modal-backdrop" style="display:none" onclick="if(event.target===this)closeScorecardModal()">
+  <div class="modal-card">
+    <div class="modal-title" id="scorecardModalTitle">Generate Competency Test Link</div>
+    <div class="modal-sub" id="scorecardModalSub">A link to the competency test will be copied to your clipboard. Share it with the candidate before the interview.</div>
+    <div class="modal-err" id="scorecardModalErr"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeScorecardModal()">Cancel</button>
+      <button class="modal-send" id="scorecardGenBtn" onclick="generateScorecardLink()">Generate &amp; Copy Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- MCQ results modal -->
+<div id="mcqModal" class="modal-backdrop" style="display:none;align-items:flex-start;padding:32px 16px;overflow-y:auto" onclick="if(event.target===this)closeMcqModal()">
+  <div class="modal-card" style="max-width:680px;width:100%;max-height:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="modal-title" style="margin:0">Competency Test — Submitted Answers</div>
+      <button onclick="closeMcqModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;line-height:1">&times;</button>
+    </div>
+    <div id="mcqModalBody" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/portal.config.js"></script>
+<script>
+const { createClient } = supabase;
+const sb = createClient(PORTAL_CONFIG.supabaseUrl, PORTAL_CONFIG.supabaseAnon);
+
+let allApps    = [];
+let curFilter  = 'all';
+let curSearch  = '';
+let openId     = null;
+let detCache   = {};
+let scCache    = {};
+let scHistoryCache = {};
+
+// PLACEHOLDER — pass threshold must match supabase/functions/submit-mcq's
+// PASS_THRESHOLD constant. Update both together if this changes.
+const MCQ_PASS_THRESHOLD = 12;
+
+const SC = {
+  cv_received:       { label: 'CV Received',      cls: 'b-cv_received'       },
+  form1_complete:    { label: 'Form Complete',     cls: 'b-form1_complete'    },
+  interview_invited: { label: 'Interview Invited', cls: 'b-interview_invited' },
+  rejected:          { label: 'Not Progressing',   cls: 'b-rejected'          },
+};
+
+// Interviewer scorecard rating domains — independent of the MCQ test sections.
+const SC_DOMAINS = [
+  { key: 'core_values',   label: 'Core Values &amp; Professional Boundaries' },
+  { key: 'safeguarding',  label: 'Safeguarding Awareness' },
+  { key: 'behaviour',     label: 'Behaviour Support &amp; De-escalation' },
+  { key: 'communication', label: 'Communication &amp; Teamwork' },
+  { key: 'conduct',       label: 'Professional Conduct' },
+];
+
+/* ---- AUTH ---- */
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { showAdmin(session.user.email); loadApps(); }
+  else showLogin();
+}
+
+async function login() {
+  const email = document.getElementById('lEmail').value.trim();
+  const pass  = document.getElementById('lPass').value;
+  const btn   = document.getElementById('loginBtn');
+  const err   = document.getElementById('loginErr');
+  if (!email || !pass) { err.textContent = 'Enter email and password.'; err.style.display = 'block'; return; }
+  btn.textContent = 'Signing in…'; btn.disabled = true; err.style.display = 'none';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; btn.textContent = 'Sign In'; btn.disabled = false; return; }
+  showAdmin(data.user.email); loadApps();
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  showLogin();
+  allApps = []; openId = null;
+  document.getElementById('appList').innerHTML = '<div class="app-empty"><div class="spin"></div></div>';
+  document.getElementById('detailContent').style.display = 'none';
+  document.getElementById('detailEmpty').style.display = 'flex';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') login();
+});
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminApp').style.display = 'none';
+}
+
+function showAdmin(email) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'flex';
+  document.getElementById('admEmail').textContent = email || '';
+}
+
+/* ---- LOAD APPS ---- */
+async function loadApps() {
+  const { data, error } = await sb
+    .from('hatfield_applications')
+    .select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('appList').innerHTML = `<div class="app-empty">Error: ${esc(error.message)}</div>`;
+    return;
+  }
+  allApps = data || [];
+  renderStats(); renderList();
+}
+
+function renderStats() {
+  document.getElementById('sTotal').textContent   = allApps.length;
+  document.getElementById('sForm').textContent    = allApps.filter(a => a.status === 'form1_complete').length;
+  document.getElementById('sInvited').textContent = allApps.filter(a => a.status === 'interview_invited').length;
+}
+
+function getVisible() {
+  let apps = allApps;
+  if (curFilter !== 'all') apps = apps.filter(a => a.status === curFilter);
+  if (curSearch) {
+    const q = curSearch.toLowerCase();
+    apps = apps.filter(a => (a.first_name + ' ' + a.last_name).toLowerCase().includes(q) || (a.email || '').toLowerCase().includes(q));
+  }
+  return apps;
+}
+
+function renderList() {
+  const list = document.getElementById('appList');
+  const apps = getVisible();
+  const countEl = document.getElementById('listCount');
+  if (countEl) countEl.textContent = apps.length + ' application' + (apps.length !== 1 ? 's' : '');
+  if (!apps.length) { list.innerHTML = '<div class="app-empty">No applications found</div>'; return; }
+  list.innerHTML = apps.map(a => {
+    const s = SC[a.status] || { label: a.status, cls: '' };
+    const sel = a.id === openId ? ' sel' : '';
+    return `<div class="app-row${sel}" onclick="openDetail('${a.id}')">
+      <div>
+        <div class="app-name">${esc(a.first_name)} ${esc(a.last_name)}</div>
+        <div class="app-role">${esc(a.role_applied)}</div>
+      </div>
+      <div class="app-right">
+        <div class="app-date">${fmtShort(a.created_at)}</div>
+        <span class="badge ${s.cls}">${s.label}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setFilter(f) {
+  curFilter = f;
+  renderList();
+}
+
+function onSearch() { curSearch = document.getElementById('searchBox').value; renderList(); }
+
+/* ---- DETAIL ---- */
+async function openDetail(id) {
+  openId = id; renderList();
+  const app = allApps.find(a => a.id === id);
+  if (!app) return;
+  document.getElementById('detailEmpty').style.display = 'none';
+  document.getElementById('detailContent').style.display = 'block';
+
+  // Show skeleton header immediately
+  renderHeader(app);
+
+  // Fetch form1 details if applicable
+  const needsDetails = ['form1_complete','interview_invited','rejected'].includes(app.status);
+  if (needsDetails && !detCache[id]) {
+    const { data } = await sb.from('hatfield_application_details').select('*').eq('application_id', id).single();
+    detCache[id] = data || null;
+  }
+
+  // Fetch scorecard results if applicable — only the current (non-superseded) attempt
+  const needsScorecard = ['form1_complete','interview_invited','rejected'].includes(app.status);
+  if (needsScorecard && !scCache[id]) {
+    const { data } = await sb.from('hatfield_competency_results').select('domain_ratings,strengths,development_areas,outcome,interviewer_name,completed_at,mcq_score,section_scores,answers,mcq_submitted_at,score_viewed_at,attempt_number').eq('application_id', id).is('superseded_at', null).maybeSingle();
+    scCache[id] = data || null;
+  }
+
+  // Prior (superseded) attempts, only if the current attempt isn't the first
+  if (needsScorecard && scCache[id] && scCache[id].attempt_number > 1 && !scHistoryCache[id]) {
+    const { data } = await sb.from('hatfield_competency_results').select('attempt_number,mcq_score,mcq_submitted_at').eq('application_id', id).not('superseded_at', 'is', null).order('attempt_number');
+    scHistoryCache[id] = data || [];
+  }
+
+  renderFull(app, detCache[id] || null, scCache[id] || null, scHistoryCache[id] || []);
+}
+
+function renderHeader(app) {
+  const s = SC[app.status] || { label: app.status, cls: '' };
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-name">${esc(app.first_name)} ${esc(app.last_name)}</div>
+      <div class="detail-meta">
+        <span class="role-tag">${esc(app.role_applied)}</span>
+        <span class="badge ${s.cls}">${s.label}</span>
+        <span class="detail-date">Applied ${fmtFull(app.created_at)}</span>
+      </div>
+    </div>
+    <div class="detail-body"><div style="text-align:center;padding:48px 0;"><div class="spin"></div></div></div>`;
+}
+
+function renderFull(app, det, sc, scHistory) {
+  scHistory = scHistory || [];
+  const s = SC[app.status] || { label: app.status, cls: '' };
+
+  const cvBtn = app.cv_url
+    ? `<button class="btn-dl" onclick="dlCV('${esc(app.cv_url)}','${app.id}')">
+         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+         Download CV
+       </button>`
+    : `<button class="btn-dl" disabled>No CV Uploaded</button>`;
+
+  const form1Html = det ? buildForm1(det) : `<p class="no-data">${
+    app.status === 'cv_received'
+      ? 'Candidate has not yet completed their application form.'
+      : 'No form details on record.'}</p>`;
+
+  // Initialise scorecard + MCQ state from existing data
+  _ratings = (sc && sc.domain_ratings) ? Object.assign({}, sc.domain_ratings) : {};
+  _outcome = (sc && sc.outcome) || '';
+  _mcqSc   = sc || null;
+
+  const showScTab = ['interview_invited','rejected'].includes(app.status);
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-name">${esc(app.first_name)} ${esc(app.last_name)}</div>
+      <div class="detail-meta">
+        <span class="role-tag">${esc(app.role_applied)}</span>
+        <span class="badge ${s.cls}" id="dbadge">${s.label}</span>
+        <span class="detail-date">Applied ${fmtFull(app.created_at)}</span>
+      </div>
+    </div>
+
+    ${showScTab ? `<div class="tab-nav">
+      <button class="tab-btn active" id="tabBtnOverview" onclick="showTab('overview')">Overview</button>
+      <button class="tab-btn" id="tabBtnScorecard" onclick="showTab('scorecard')">Scorecard</button>
+    </div>` : ''}
+
+    <div class="tab-pane active" id="tab-overview">
+      <div class="detail-body">
+
+        <div class="info-row">
+          <div class="info-item"><label>Email</label><a href="mailto:${esc(app.email)}" title="${esc(app.email)}">${esc(app.email)}</a></div>
+          <div class="info-item"><label>Phone</label><a href="tel:${esc(app.phone)}">${esc(app.phone)}</a></div>
+          ${app.form1_submitted_at ? `<div class="info-item"><label>Form Submitted</label><span>${fmtFull(app.form1_submitted_at)}</span></div>` : ''}
+        </div>
+
+        <div class="action-row">
+          ${cvBtn}
+          <button class="btn-invite${app.status !== 'cv_received' && app.status !== 'rejected' ? ' enabled' : ''}"
+            ${app.status !== 'cv_received' && app.status !== 'rejected' ? `onclick="openInvite('${app.id}','${esc(app.first_name)} ${esc(app.last_name)}','${esc(app.email)}')"` : 'title="Candidate must complete Form 1 before sending an invite"'}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Send Interview Invite
+          </button>
+          ${['form1_complete','interview_invited'].includes(app.status) ? `<button class="btn-scorecard" onclick="openScorecardModal('${app.id}', ${sc && sc.mcq_score !== null && sc.mcq_score !== undefined})">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            ${sc && sc.mcq_score !== null && sc.mcq_score !== undefined ? 'Give Second Chance (Regenerate Test)' : 'Generate Competency Test Link'}
+          </button>` : ''}
+          ${sc && sc.mcq_score !== null && sc.mcq_score !== undefined ? `<button class="btn-scorecard" onclick="openMcqModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            View Test Results
+          </button>` : ''}
+        </div>
+
+        ${buildTimeline(app, sc)}
+
+        <div class="sec-card">
+          <div class="sec-head">Status &amp; HR Notes</div>
+          <div class="sec-body">
+            <div class="status-row">
+              <span class="badge ${s.cls}">${s.label}</span>
+              ${app.status !== 'rejected' ? `<button class="btn-reject" onclick="markRejected('${app.id}')">&#10006; Not Progressing</button>` : ''}
+            </div>
+            <textarea class="hr-notes" id="hrNotes" placeholder="HR notes…">${esc(app.hr_notes || '')}</textarea>
+            <div class="save-row">
+              <button class="save-btn" id="saveBtn" onclick="saveNotes('${app.id}')">Save Notes</button>
+              <span class="save-ok" id="saveOk">Saved &#10003;</span>
+            </div>
+          </div>
+        </div>
+
+        ${sc && sc.mcq_score !== null && sc.mcq_score !== undefined ? buildMcqCard(sc, scHistory) : ''}
+
+        <div class="sec-card">
+          <div class="sec-head">Application Form Details</div>
+          <div class="sec-body">${form1Html}</div>
+        </div>
+
+      </div>
+    </div>
+
+    ${showScTab ? `<div class="tab-pane" id="tab-scorecard">
+      <div class="detail-body">${buildScorecardForm(app.id, sc)}</div>
+    </div>` : ''}
+  `;
+}
+
+function showTab(name) {
+  ['overview','scorecard'].forEach(t => {
+    const pane = document.getElementById('tab-' + t);
+    const btn  = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (!pane) return;
+    pane.classList.toggle('active', t === name);
+    if (btn) btn.classList.toggle('active', t === name);
+  });
+}
+
+function buildMcqCard(sc, scHistory) {
+  scHistory = scHistory || [];
+  const score = sc.mcq_score;
+  const passed = score >= MCQ_PASS_THRESHOLD;
+  const cls = passed ? 'mcq-pass' : 'mcq-fail';
+  const ss = sc.section_scores || {};
+  const attempt = sc.attempt_number || 1;
+  // Must match SECTIONS in supabase/functions/submit-mcq and test.html
+  const SNAMES = [
+    ['placeholder_1', 'Safeguarding',    4],
+    ['placeholder_2', 'Behaviour',       4],
+    ['placeholder_3', 'Health/Med',      4],
+    ['placeholder_4', 'Emergency',       3],
+    ['placeholder_5', 'Communication',   5],
+  ];
+  const rows = SNAMES.map(([k, label, max]) =>
+    `<div class="mcq-sec-row"><span>${label}</span><span>${ss[k] !== undefined ? ss[k] : '?'} / ${max}</span></div>`
+  ).join('');
+  const historyHtml = scHistory.length ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #eee">
+      <div style="font-size:0.78rem;color:#888;font-weight:700;margin-bottom:6px">PREVIOUS ATTEMPTS</div>
+      ${scHistory.map(h => `<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#666;padding:2px 0">
+        <span>Attempt ${h.attempt_number} &mdash; ${fmtFull(h.mcq_submitted_at)}</span><span style="font-weight:700">${h.mcq_score}/20</span>
+      </div>`).join('')}
+    </div>` : '';
+  return `<div class="sec-card">
+    <div class="sec-head">Competency Test Score${attempt > 1 ? ` <span style="font-weight:400;color:#888;font-size:0.85em">(Attempt ${attempt})</span>` : ''}</div>
+    <div class="sec-body">
+      <div class="mcq-score-card">
+        <div>
+          <div class="mcq-score-big ${cls}">${score}/20</div>
+          <div style="font-size:0.82rem;font-weight:700;color:${passed ? '#166534' : '#991b1b'};margin-top:2px">${passed ? 'PASS' : 'FAIL'}</div>
+          <div style="font-size:0.75rem;color:#777;margin-top:2px">Threshold: ${MCQ_PASS_THRESHOLD}/20</div>
+        </div>
+        <div class="mcq-sections">${rows}</div>
+      </div>
+      ${historyHtml}
+    </div>
+  </div>`;
+}
+
+let _ratings = {};
+let _outcome = '';
+
+function buildScorecardForm(appId, sc) {
+  const domainRows = SC_DOMAINS.map(d => {
+    const r = Number((sc && sc.domain_ratings && sc.domain_ratings[d.key]) || 0);
+    const stars = Array.from({length:5}, (_,i) =>
+      `<span class="sc-star${i < r ? ' on' : ''}" onclick="setRating('${d.key}',${i+1})" data-domain="${d.key}" data-n="${i+1}">&#9733;</span>`
+    ).join('');
+    return `<div class="sc-domain-row">
+      <span class="sc-domain-label">${d.label}</span>
+      <div class="sc-stars" id="stars-${d.key}">${stars}</div>
+    </div>`;
+  }).join('');
+
+  const outBtns = ['PASS','HOLD','FAIL'].map(o =>
+    `<button class="outcome-btn${_outcome === o ? ' sel-' + o : ''}" onclick="setOutcome('${o}','${appId}')">${o}</button>`
+  ).join('');
+
+  return `<div class="sec-card">
+    <div class="sec-head">Interviewer Assessment</div>
+    <div class="sec-body">
+      <div style="margin-bottom:18px">${domainRows}</div>
+      <div class="info-item" style="margin-bottom:14px">
+        <label>Strengths</label>
+        <textarea class="hr-notes" id="sc_strengths" placeholder="Key strengths observed…" style="margin-top:6px">${esc((sc && sc.strengths) || '')}</textarea>
+      </div>
+      <div class="info-item" style="margin-bottom:14px">
+        <label>Development Areas</label>
+        <textarea class="hr-notes" id="sc_dev_areas" placeholder="Areas for development…" style="margin-top:6px">${esc((sc && sc.development_areas) || '')}</textarea>
+      </div>
+      <div class="info-item" style="margin-bottom:14px">
+        <label>Overall Outcome</label>
+        <div class="outcome-row" id="outcomeRow">${outBtns}</div>
+      </div>
+      <div class="info-item" style="margin-bottom:6px">
+        <label>Interviewer Name</label>
+        <input type="text" class="f1-input" id="sc_interviewer_name" value="${esc((sc && sc.interviewer_name) || '')}" placeholder="Full name" style="margin-top:6px;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:Jost,Arial,sans-serif;font-size:0.9rem;width:100%">
+      </div>
+      ${sc && sc.completed_at ? `<p style="font-size:0.78rem;color:#888;margin-bottom:10px">Last saved ${fmtFull(sc.completed_at)} by ${esc(sc.interviewer_name || '—')}</p>` : ''}
+      <div class="sc-save-row">
+        <button class="sc-save-btn" id="scSaveBtn" onclick="saveScorecard('${appId}')">Save Scorecard</button>
+        <span class="sc-save-ok" id="scSaveOk">Saved &#10003;</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setRating(domainKey, n) {
+  _ratings[domainKey] = n;
+  const container = document.getElementById('stars-' + domainKey);
+  if (!container) return;
+  container.querySelectorAll('.sc-star').forEach((star, i) => {
+    star.classList.toggle('on', i < n);
+  });
+}
+
+function setOutcome(val, appId) {
+  _outcome = val;
+  const row = document.getElementById('outcomeRow');
+  if (!row) return;
+  row.querySelectorAll('.outcome-btn').forEach(btn => {
+    btn.className = 'outcome-btn' + (btn.textContent === val ? ' sel-' + val : '');
+  });
+}
+
+async function saveScorecard(appId) {
+  const btn = document.getElementById('scSaveBtn');
+  const ok  = document.getElementById('scSaveOk');
+  const name = (document.getElementById('sc_interviewer_name') || {}).value || '';
+  if (!_outcome) { alert('Please select an outcome (PASS / HOLD / FAIL).'); return; }
+  if (!name.trim()) { alert('Please enter the interviewer name.'); return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    const res = await fetch(PORTAL_CONFIG.edgeBase + '/submit-scorecard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({
+        app_id: appId,
+        domain_ratings: _ratings,
+        strengths: (document.getElementById('sc_strengths') || {}).value || '',
+        development_areas: (document.getElementById('sc_dev_areas') || {}).value || '',
+        outcome: _outcome,
+        interviewer_name: name,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    // Update local cache so re-renders show saved data
+    if (!scCache[appId]) scCache[appId] = {};
+    scCache[appId].domain_ratings = Object.assign({}, _ratings);
+    scCache[appId].outcome = _outcome;
+    scCache[appId].interviewer_name = name;
+    scCache[appId].strengths = (document.getElementById('sc_strengths') || {}).value || '';
+    scCache[appId].development_areas = (document.getElementById('sc_dev_areas') || {}).value || '';
+    scCache[appId].completed_at = new Date().toISOString();
+    btn.disabled = false; btn.textContent = 'Save Scorecard';
+    ok.style.display = 'inline';
+    setTimeout(() => { ok.style.display = 'none'; }, 2500);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Save Scorecard';
+    alert('Save failed: ' + e.message);
+  }
+}
+
+async function markRejected(appId) {
+  if (!confirm('Mark this candidate as Not Progressing? This cannot be automatically undone.')) return;
+  const { error } = await sb.from('hatfield_applications').update({ status: 'rejected' }).eq('id', appId);
+  if (error) { alert('Failed: ' + error.message); return; }
+  const app = allApps.find(a => a.id === appId);
+  if (app) app.status = 'rejected';
+  renderStats(); renderList();
+  openDetail(appId);
+}
+
+async function saveNotes(appId) {
+  const hr_notes = document.getElementById('hrNotes').value;
+  const btn      = document.getElementById('saveBtn');
+  const ok       = document.getElementById('saveOk');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await sb.from('hatfield_applications').update({ hr_notes }).eq('id', appId);
+  btn.disabled = false; btn.textContent = 'Save Notes';
+  if (error) { alert('Save failed: ' + error.message); return; }
+  const app = allApps.find(a => a.id === appId);
+  if (app) app.hr_notes = hr_notes;
+  ok.style.display = 'inline';
+  setTimeout(() => { ok.style.display = 'none'; }, 2500);
+}
+
+async function dlCV(cvUrl, appId) {
+  const app = allApps.find(a => a.id === appId);
+  const ext = cvUrl.split('.').pop() || 'pdf';
+  const downloadName = app ? `${app.first_name}_${app.last_name}_CV.${ext}` : undefined;
+  const { data, error } = await sb.storage.from('cvs').createSignedUrl(cvUrl, 120, downloadName ? { download: downloadName } : {});
+  if (error || !data?.signedUrl) { alert('Could not generate download link: ' + (error?.message || 'Unknown error')); return; }
+  window.open(data.signedUrl, '_blank');
+  if (app && !app.cv_downloaded_at) {
+    const ts = new Date().toISOString();
+    const { error: updErr } = await sb.from('hatfield_applications').update({ cv_downloaded_at: ts }).eq('id', appId);
+    if (updErr) {
+      console.error('Failed to record CV-downloaded timestamp:', updErr.message);
+      alert('CV downloaded, but the timeline could not be updated (will retry on next download): ' + updErr.message);
+    } else {
+      app.cv_downloaded_at = ts;
+      const tlEl = document.getElementById('tl-cv-downloaded');
+      if (tlEl) {
+        tlEl.querySelector('.tl-dot').className = 'tl-dot done';
+        tlEl.querySelector('.tl-dot').innerHTML = '&#10003;';
+        const tm = tlEl.querySelector('.tl-time'); tm.className = 'tl-time'; tm.textContent = fmtTimeline(ts);
+      }
+    }
+  }
+  if (app && app.status !== 'rejected') {
+    setTimeout(() => openInvite(appId, app.first_name + ' ' + app.last_name, app.email), 600);
+  }
+}
+
+/* ---- INVITE ---- */
+let _inviteAppId = null;
+
+function openInvite(appId, name, email) {
+  _inviteAppId = appId;
+  document.getElementById('inviteSubtitle').textContent = `Sending to: ${name} (${email})`;
+  document.getElementById('inv_date').value = '';
+  document.getElementById('inv_time').value = '';
+  document.getElementById('inv_location').value = '';
+  document.getElementById('inv_notes').value = '';
+  document.getElementById('inviteErr').style.display = 'none';
+  document.getElementById('inviteSendBtn').disabled = false;
+  document.getElementById('inviteSendBtn').textContent = 'Send Invite';
+  document.getElementById('inviteModal').style.display = 'flex';
+}
+
+function closeInvite() {
+  document.getElementById('inviteModal').style.display = 'none';
+  _inviteAppId = null;
+}
+
+async function sendInvite() {
+  const date     = document.getElementById('inv_date').value;
+  const time     = document.getElementById('inv_time').value;
+  const location = document.getElementById('inv_location').value.trim();
+  const notes    = document.getElementById('inv_notes').value.trim();
+  const err      = document.getElementById('inviteErr');
+  const btn      = document.getElementById('inviteSendBtn');
+
+  if (!date || !time || !location) {
+    err.textContent = 'Please fill in date, time and location.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending…'; err.style.display = 'none';
+
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) throw new Error('Not logged in — please refresh the page');
+    const res = await fetch(PORTAL_CONFIG.edgeBase + '/send-invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({ app_id: _inviteAppId, date, time, location, notes }),
+    });
+    const rawText = await res.text();
+    let json;
+    try { json = JSON.parse(rawText); } catch { throw new Error(`HTTP ${res.status} — ${rawText.slice(0, 120)}`); }
+    if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+
+    // Update local state and show toast
+    const savedId = _inviteAppId;
+    const app = allApps.find(a => a.id === savedId);
+    if (app) app.status = 'interview_invited';
+    closeInvite();
+    renderStats(); renderList();
+    openDetail(savedId);
+    const toast = document.getElementById('inviteToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Send Invite';
+  }
+}
+
+/* ---- MCQ RESULTS MODAL ---- */
+// PLACEHOLDER — must mirror supabase/functions/submit-mcq's ANSWER_KEY and
+// test.html's SECTIONS exactly, in the same order. Update all three together.
+const MCQ_ANSWER_KEY = ['a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a'];
+const MCQ_SECTIONS = [
+  { name:'PLACEHOLDER — Safeguarding & Child Protection', questions:[
+    '[PLACEHOLDER] A young person discloses that another resident has been hurting them. What is the correct first action?',
+    '[PLACEHOLDER] What does "Promoting Independence" mean in a residential setting for young people?',
+    '[PLACEHOLDER] What is an example of person-centred, trauma-informed care?',
+    '[PLACEHOLDER] Under Working Together to Safeguard Children, who must you report a concern to?'
+  ], options:[
+    ['[PLACEHOLDER A]','[PLACEHOLDER B — correct]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]']
+  ], start:0 },
+  { name:'PLACEHOLDER — Behaviour Support & De-escalation', questions:[
+    '[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]'
+  ], options:[
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]']
+  ], start:4 },
+  { name:'PLACEHOLDER — Health, Medication & Risk', questions:[
+    '[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]'
+  ], options:[
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]']
+  ], start:8 },
+  { name:'PLACEHOLDER — Emergency Situations & Health/Safety', questions:[
+    '[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]'
+  ], options:[
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]']
+  ], start:12 },
+  { name:'PLACEHOLDER — Communication & Professional Conduct', questions:[
+    '[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]','[PLACEHOLDER question]'
+  ], options:[
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'],
+    ['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]']
+  ], start:15 }
+];
+const OPT_KEYS = ['a','b','c','d'];
+let _mcqSc = null;
+
+async function openMcqModal() {
+  if (!_mcqSc) return;
+  const answers = _mcqSc.answers;
+  const score = _mcqSc.mcq_score;
+  const passed = score >= MCQ_PASS_THRESHOLD;
+  let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:#f8f9fa;border-radius:8px">
+    <span style="font-size:0.88rem"><strong>Score:</strong> ${score}/20</span>
+    <span style="font-size:0.88rem;color:${passed ? '#166534' : '#991b1b'};font-weight:700">${passed ? 'PASS' : 'FAIL'}</span>
+    <span style="font-size:0.88rem;color:#888">Pass threshold: ${MCQ_PASS_THRESHOLD}/20</span>
+    ${_mcqSc.attempt_number > 1 ? `<span style="font-size:0.88rem;color:#888">Attempt ${_mcqSc.attempt_number}</span>` : ''}
+  </div>`;
+
+  if (!answers) {
+    html += `<p style="color:#888;font-size:0.85rem;padding:12px 0">Individual answers were not recorded for this submission. Only the score is available.</p>`;
+    document.getElementById('mcqModalBody').innerHTML = html;
+    document.getElementById('mcqModal').style.display = 'flex';
+    return;
+  }
+
+  MCQ_SECTIONS.forEach(section => {
+    html += `<div class="mcq-section-head">${section.name}</div>`;
+    section.questions.forEach((qText, li) => {
+      const gi = section.start + li;
+      const chosen = (answers[gi] || '').toLowerCase();
+      const correct = MCQ_ANSWER_KEY[gi];
+      const isRight = chosen === correct;
+      html += `<div class="mcq-q-block">
+        <div class="mcq-q-text">Q${gi+1}. ${qText}</div>`;
+      section.options[li].forEach((opt, oi) => {
+        const k = OPT_KEYS[oi];
+        const isChosen = k === chosen;
+        const isCorrect = k === correct;
+        let cls = 'neutral';
+        let suffix = '';
+        if (isChosen && isRight)  { cls = 'correct'; suffix = ' &#10003; Correct'; }
+        if (isChosen && !isRight) { cls = 'wrong';   suffix = ' &#10007; Selected'; }
+        if (!isChosen && isCorrect && !isRight) { cls = 'correct'; suffix = ' (correct answer)'; }
+        html += `<div class="mcq-opt ${cls}"><span class="mcq-opt-key">${k.toUpperCase()}.</span><span>${opt}${suffix}</span></div>`;
+      });
+      html += `</div>`;
+    });
+  });
+
+  document.getElementById('mcqModalBody').innerHTML = html;
+  document.getElementById('mcqModal').style.display = 'flex';
+  if (_mcqSc && !_mcqSc.score_viewed_at) {
+    const ts = new Date().toISOString();
+    const { error } = await sb.from('hatfield_competency_results').update({ score_viewed_at: ts }).eq('application_id', openId);
+    if (error) { console.error('Failed to record score-viewed timestamp:', error.message); return; }
+    _mcqSc.score_viewed_at = ts;
+    const tlEl = document.getElementById('tl-score-viewed');
+    if (tlEl) {
+      tlEl.querySelector('.tl-dot').className = 'tl-dot done';
+      tlEl.querySelector('.tl-dot').innerHTML = '&#10003;';
+      const tm = tlEl.querySelector('.tl-time'); tm.className = 'tl-time'; tm.textContent = fmtTimeline(ts);
+    }
+  }
+}
+
+function closeMcqModal() {
+  document.getElementById('mcqModal').style.display = 'none';
+}
+
+/* ---- SCORECARD LINK ---- */
+let _scModalAppId = null;
+
+function openScorecardModal(appId, isRetake) {
+  _scModalAppId = appId;
+  document.getElementById('scorecardModalErr').style.display = 'none';
+  document.getElementById('scorecardGenBtn').disabled = false;
+  document.getElementById('scorecardGenBtn').textContent = 'Generate & Copy Link';
+  document.getElementById('scorecardModalTitle').textContent = isRetake ? 'Give Second Chance — Regenerate Test' : 'Generate Competency Test Link';
+  document.getElementById('scorecardModalSub').textContent = isRetake
+    ? 'This candidate already has a test result on file. Generating a new link lets them retake it — their current score will be kept on file as a previous attempt, and the new attempt will become the official result.'
+    : 'A link to the competency test will be copied to your clipboard. Share it with the candidate before the interview.';
+  document.getElementById('scorecardModal').style.display = 'flex';
+}
+
+function closeScorecardModal() {
+  document.getElementById('scorecardModal').style.display = 'none';
+  _scModalAppId = null;
+}
+
+async function generateScorecardLink() {
+  const err = document.getElementById('scorecardModalErr');
+  const btn = document.getElementById('scorecardGenBtn');
+
+  btn.disabled = true; btn.textContent = 'Generating…'; err.style.display = 'none';
+
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) throw new Error('Not logged in — please refresh the page');
+    const res = await fetch(PORTAL_CONFIG.edgeBase + '/generate-scorecard-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({ app_id: _scModalAppId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    const savedAppId = _scModalAppId;
+    await navigator.clipboard.writeText(data.url);
+    closeScorecardModal();
+    const toast = document.getElementById('scorecardToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+    delete scCache[savedAppId];
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Generate & Copy Link';
+  }
+}
+
+/* ---- TIMELINE ---- */
+function buildTimeline(app, sc) {
+  const events = [
+    { id: 'tl-cv-submitted',    label: 'CV Submitted',              ts: app.submitted_at || app.created_at, who: 'candidate' },
+    { id: 'tl-form1-completed', label: 'Application Form Completed', ts: app.form1_submitted_at,      who: 'candidate' },
+    { id: 'tl-cv-downloaded',   label: 'CV Downloaded by HR',        ts: app.cv_downloaded_at,        who: 'hr'        },
+    { id: 'tl-invite-sent',     label: 'Interview Invite Sent',      ts: app.invited_at,              who: 'hr'        },
+    { id: 'tl-mcq-submitted',   label: 'Competency Test Submitted',  ts: sc && sc.mcq_submitted_at,   who: 'candidate' },
+    { id: 'tl-score-viewed',    label: 'Test Results Viewed by HR',  ts: sc && sc.score_viewed_at,    who: 'hr'        },
+  ];
+  const rows = events.map(e => {
+    const done = !!e.ts;
+    const whoClass = e.who === 'hr' ? 'tl-who-hr' : 'tl-who-cand';
+    const whoLabel = e.who === 'hr' ? 'HR' : 'Candidate';
+    return `<div class="tl-item" id="${e.id}">
+      <div class="tl-dot ${done ? 'done' : 'pending'}">${done ? '&#10003;' : ''}</div>
+      <div>
+        <div class="tl-label">${e.label}</div>
+        <div class="tl-time${done ? '' : ' pending'}">${done ? fmtTimeline(e.ts) : 'Not yet'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="sec-card">
+    <div class="sec-head">Application Timeline</div>
+    <div class="sec-body"><div class="timeline">${rows}</div></div>
+  </div>`;
+}
+
+function fmtTimeline(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ---- FORM 1 RENDERER ---- */
+function buildForm1(d) {
+  const out = [];
+
+  // Personal
+  out.push(`<div class="f1-section">
+    <div class="f1-section-title">Personal Details</div>
+    <table class="data-table">
+      ${d.title ? `<tr><td>Title</td><td>${esc(d.title)}</td></tr>` : ''}
+      <tr><td>NI Number</td><td>${esc(d.ni_number || '—')}</td></tr>
+      <tr><td>Date of Birth</td><td>${fmtDOB(d.dob)}</td></tr>
+      ${d.mobile ? `<tr><td>Mobile</td><td><a href="tel:${esc(d.mobile)}">${esc(d.mobile)}</a></td></tr>` : ''}
+      ${d.alt_phone ? `<tr><td>Alt Phone</td><td><a href="tel:${esc(d.alt_phone)}">${esc(d.alt_phone)}</a></td></tr>` : ''}
+      ${d.email ? `<tr><td>Email (Form 1)</td><td><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></td></tr>` : ''}
+      <tr><td>Signed by</td><td>${d.declaration_signature ? `${esc(d.declaration_signature)} on ${fmtFull(d.declaration_signed_at)}` : '—'}</td></tr>
+    </table>
+  </div>`);
+
+  // Education
+  if (d.education?.length) {
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">Education</div>
+      ${d.education.map(e => `
+        <div class="data-entry">
+          <div class="de-title">${esc(e.qualification)}${e.grade ? ` &mdash; ${esc(e.grade)}` : ''}</div>
+          <div class="de-row"><span class="de-k">Institution</span><span class="de-v">${esc(e.institution || '—')}</span></div>
+          ${(e.start_month||e.start_year) ? `<div class="de-row"><span class="de-k">Period</span><span class="de-v">${[e.start_month,e.start_year].filter(Boolean).join('/')} &ndash; ${[e.end_month,e.end_year].filter(Boolean).join('/') || 'present'}</span></div>` : ''}
+        </div>`).join('')}
+    </div>`);
+  }
+
+  // Other training
+  if (d.other_training) {
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">Other Specialised Training</div>
+      <div class="data-entry" style="white-space:pre-wrap">${esc(d.other_training)}</div>
+    </div>`);
+  }
+
+  // Current/most recent employer
+  if (d.current_employer && typeof d.current_employer === 'object') {
+    const ce = d.current_employer;
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">Current / Most Recent Employer</div>
+      <div class="data-entry">
+        ${ce.address ? `<div class="de-row"><span class="de-k">Employer</span><span class="de-v" style="white-space:pre-wrap">${esc(ce.address)}</span></div>` : ''}
+        ${ce.job_title ? `<div class="de-row"><span class="de-k">Job Title</span><span class="de-v">${esc(ce.job_title)}</span></div>` : ''}
+        ${ce.duties ? `<div class="de-row"><span class="de-k">Duties</span><span class="de-v" style="white-space:pre-wrap">${esc(ce.duties)}</span></div>` : ''}
+        ${ce.phone ? `<div class="de-row"><span class="de-k">Phone</span><span class="de-v">${esc(ce.phone)}</span></div>` : ''}
+        ${(ce.date_from||ce.date_to) ? `<div class="de-row"><span class="de-k">Period</span><span class="de-v">${esc(ce.date_from||'?')} &ndash; ${esc(ce.date_to||'Present')}</span></div>` : ''}
+        ${ce.salary ? `<div class="de-row"><span class="de-k">Salary</span><span class="de-v">${esc(ce.salary)}</span></div>` : ''}
+        ${ce.notice_period ? `<div class="de-row"><span class="de-k">Notice</span><span class="de-v">${esc(ce.notice_period)}</span></div>` : ''}
+        ${ce.reason_leaving ? `<div class="de-row"><span class="de-k">Reason leaving</span><span class="de-v">${esc(ce.reason_leaving)}</span></div>` : ''}
+      </div>
+    </div>`);
+  }
+
+  // Previous employment
+  if (d.employment_history?.length) {
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">Previous Employment History</div>
+      ${d.employment_history.map(e => e.type === 'gap'
+        ? `<div class="data-entry gap-entry">
+             <div class="de-title" style="color:#92400E;">Gap in Employment</div>
+             <div class="de-row"><span class="de-k">Period</span><span class="de-v">${esc(e.from || '?')} &ndash; ${esc(e.to || '?')}</span></div>
+             <div class="de-row"><span class="de-k">Reason</span><span class="de-v">${esc(e.reason || '—')}</span></div>
+           </div>`
+        : `<div class="data-entry">
+             ${e.employer_address ? `<div class="de-row"><span class="de-k">Employer</span><span class="de-v" style="white-space:pre-wrap">${esc(e.employer_address)}</span></div>` : (e.employer ? `<div class="de-title">${esc(e.employer)}</div>` : '')}
+             ${e.position ? `<div class="de-row"><span class="de-k">Position</span><span class="de-v">${esc(e.position)}</span></div>` : (e.title ? `<div class="de-row"><span class="de-k">Job title</span><span class="de-v">${esc(e.title)}</span></div>` : '')}
+             ${e.salary ? `<div class="de-row"><span class="de-k">Salary</span><span class="de-v">${esc(e.salary)}</span></div>` : ''}
+             ${(e.date_from||e.date_to||e.start||e.end) ? `<div class="de-row"><span class="de-k">Period</span><span class="de-v">${esc(e.date_from||e.start||'?')} &ndash; ${esc(e.date_to||e.end||'Present')}</span></div>` : ''}
+             ${e.reason_leaving||e.reason ? `<div class="de-row"><span class="de-k">Reason left</span><span class="de-v">${esc(e.reason_leaving||e.reason)}</span></div>` : ''}
+           </div>`).join('')}
+    </div>`);
+  }
+
+  // Referees
+  if (d.referees?.length) {
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">Referees</div>
+      ${d.referees.map((r, i) => `
+        <div class="data-entry">
+          <div class="de-title">Referee ${i+1}: ${esc(r.name || '—')}</div>
+          <div class="de-row"><span class="de-k">Job title</span><span class="de-v">${esc(r.title || '—')}</span></div>
+          <div class="de-row"><span class="de-k">Organisation</span><span class="de-v">${esc(r.organisation || '—')}</span></div>
+          ${r.company_address ? `<div class="de-row"><span class="de-k">Address</span><span class="de-v" style="white-space:pre-wrap">${esc(r.company_address)}</span></div>` : ''}
+          ${r.post_code ? `<div class="de-row"><span class="de-k">Post Code</span><span class="de-v">${esc(r.post_code)}</span></div>` : ''}
+          <div class="de-row"><span class="de-k">Email</span><span class="de-v"><a href="mailto:${esc(r.email)}" style="color:var(--sage-dark)">${esc(r.email || '—')}</a></span></div>
+          <div class="de-row"><span class="de-k">Phone</span><span class="de-v">${esc(r.phone || '—')}</span></div>
+          <div class="de-row"><span class="de-k">Relationship</span><span class="de-v">${esc(r.relationship || '—')}</span></div>
+        </div>`).join('')}
+    </div>`);
+  }
+
+  // Address history
+  if (d.address_history?.length) {
+    out.push(`<div class="f1-section">
+      <div class="f1-section-title">5-Year Address History</div>
+      ${d.address_history.map(a => `
+        <div class="data-entry">
+          <div class="de-title">${esc(a.address || a.street || '—')}${a.postcode || a.post_code ? `, ${esc(a.postcode||a.post_code)}` : ''}</div>
+          <div class="de-row"><span class="de-k">Period</span><span class="de-v">${esc(a.from || '?')} &ndash; ${a.to ? esc(a.to) : 'Present'}</span></div>
+        </div>`).join('')}
+    </div>`);
+  }
+
+  return out.join('') || '<p class="no-data">No form data on record.</p>';
+}
+
+/* ---- HELPERS ---- */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtShort(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso), now = new Date();
+  const days = Math.floor((now - d) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return days + 'd ago';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function fmtFull(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function fmtDOB(dob) {
+  if (!dob) return '—';
+  try { return new Date(dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch(e) { return dob; }
+}
+
+init();
+</script>
+</body>
+</html>

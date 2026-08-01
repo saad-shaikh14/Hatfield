@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>Complete Your Application — HatfieldHome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #faf8f5; --warm: #f5f2ed; --ink: #1a1612; --ink-mid: #4a4440; --ink-light: #9a928c;
+      --sage: #82c87a; --accent: #c8785a; --accent2: #e09070; --border: #e5ddd5; --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Jost', Arial, sans-serif; background: var(--cream); color: var(--ink); }
+    a { color: inherit; }
+
+    .site-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .site-logo { font-family: 'Gilda Display', serif; font-size: 1.3rem; text-decoration: none; color: var(--ink); }
+    .site-logo span { color: var(--accent); }
+
+    .apply-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+    .apply-header { text-align: center; margin-bottom: 40px; }
+    .apply-header h1 { font-family: 'Gilda Display', serif; font-weight: 400; font-size: 1.8rem; margin-bottom: 8px; }
+    .apply-header p { color: var(--ink-mid); font-size: 1rem; }
+
+    .progress-bar { display: flex; align-items: center; margin-bottom: 48px; }
+    .progress-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .progress-step:not(:last-child)::after {
+      content: ''; position: absolute; top: 16px; left: 50%; width: 100%;
+      height: 2px; background: var(--border); z-index: 0;
+    }
+    .progress-step.done::after, .progress-step.active::after { background: var(--accent); }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; color: var(--ink-light); position: relative; z-index: 1;
+      transition: background 0.3s, color 0.3s;
+    }
+    .progress-step.done .step-dot { background: var(--accent); color: #fff; }
+    .progress-step.active .step-dot { background: var(--sage); color: #fff; }
+    .step-label { font-size: 11px; color: var(--ink-light); margin-top: 6px; text-align: center; font-weight: 600; }
+    .progress-step.active .step-label { color: var(--sage); }
+    .progress-step.done .step-label { color: var(--accent); }
+
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+    .step-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--warm); }
+
+    .section-label {
+      font-size: 1rem; font-weight: 700;
+      margin: 28px 0 14px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--warm);
+    }
+
+    .dynamic-entry {
+      background: var(--warm); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 16px; position: relative;
+    }
+    .dynamic-entry .remove-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: var(--ink-light); font-size: 18px;
+      cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px;
+    }
+    .dynamic-entry .remove-btn:hover { background: #fdf0ed; color: var(--accent); }
+    .add-entry-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: none; border: 2px dashed var(--sage); color: #4a8a44;
+      padding: 10px 20px; border-radius: var(--radius); font-family: 'Jost', sans-serif;
+      font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; width: 100%;
+      justify-content: center; transition: background 0.2s;
+    }
+    .add-entry-btn:hover { background: rgba(130,200,122,0.1); }
+
+    .declaration-box {
+      background: var(--warm); border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+    }
+    .check-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+    .check-row:last-child { margin-bottom: 0; }
+    .check-row input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); }
+    .check-row label { font-size: 0.95rem; color: var(--ink-mid); line-height: 1.6; cursor: pointer; }
+
+    .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
+    .btn-back { background: none; border: 2px solid var(--border); color: var(--ink-mid); padding: 12px 28px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .btn-back:hover { border-color: var(--sage); color: #4a8a44; }
+    .btn-primary { background: var(--ink); color: var(--cream); border: none; padding: 12px 28px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-lg { padding: 14px 32px; }
+
+    .form-group label { color: var(--ink); font-size: 0.85rem; font-weight: 600; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 16px; font-size: 0.95rem; color: var(--ink); font-family: inherit;
+      transition: border-color 0.2s; width: 100%;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: flex; gap: 16px; }
+    .form-row .form-group { flex: 1; }
+    .form-group textarea { resize: vertical; min-height: 72px; }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { outline: none; border-color: var(--accent); }
+    .form-group select option { background: #fff; color: var(--ink); }
+
+    .my-pick { display: flex; gap: 8px; width: 100%; }
+    .my-pick select { flex: 2; }
+    .my-pick input[type=number] { flex: 1; min-width: 90px; -moz-appearance: textfield; }
+    .my-pick input[type=number]::-webkit-outer-spin-button,
+    .my-pick input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .step-error {
+      background: #fdf0ed; border: 1px solid var(--accent); color: #8a3b1f;
+      border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+      margin-bottom: 18px; display: none;
+    }
+    .step-error strong { display: block; margin-bottom: 4px; }
+    .step-error ul { margin: 4px 0 0 18px; padding: 0; }
+    .submit-error {
+      background: #fdf0ed; border: 1px solid var(--accent); color: #8a3b1f;
+      border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+      margin-bottom: 14px; display: none;
+    }
+
+    .token-error { text-align: center; padding: 80px 24px; }
+    .token-error h2 { color: var(--accent); margin-bottom: 12px; }
+    .token-error p { color: var(--ink-mid); }
+
+    .apply-success { display: none; text-align: center; padding: 80px 24px; }
+    .success-icon { width: 72px; height: 72px; background: var(--sage); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+
+    @media (max-width: 600px) {
+      .step-label { display: none; }
+      .form-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="site-logo">Hatfield<span>Home</span></a>
+</header>
+
+<main style="background:var(--cream);min-height:80vh;">
+
+  <!-- Token invalid state -->
+  <div id="tokenError" class="apply-wrap token-error" style="display:none;">
+    <h2>This link is invalid or has expired</h2>
+    <p>Application links are valid for 7 days. If you need a new link, please email Info@hatfieldhome.co.uk.</p>
+  </div>
+
+  <!-- Already submitted state -->
+  <div id="alreadySubmitted" class="apply-wrap" style="display:none;text-align:center;padding:80px 24px;">
+    <div style="width:72px;height:72px;background:var(--sage);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+      <svg width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 style="color:#4a8a44;">Application Already Received</h2>
+    <p style="color:var(--ink-mid);max-width:440px;margin:0 auto 12px;line-height:1.8;">We already have your completed application. Our team will be in touch with you shortly.</p>
+    <p style="color:var(--ink-light);font-size:0.9rem;">Questions? Email <a href="mailto:Info@hatfieldhome.co.uk" style="color:var(--accent);">Info@hatfieldhome.co.uk</a></p>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loadingState" class="apply-wrap" style="text-align:center;padding:80px 24px;">
+    <p style="color:var(--ink-light);">Loading your application…</p>
+  </div>
+
+  <!-- Application form -->
+  <div id="applyWrap" class="apply-wrap" style="display:none;">
+
+    <div class="apply-header">
+      <h1>Complete Your Application</h1>
+      <p id="applySubtitle">Please complete all sections carefully — this information is used for your DBS check and employment records.</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-step active" data-step="1"><div class="step-dot">1</div><span class="step-label">Personal</span></div>
+      <div class="progress-step" data-step="2"><div class="step-dot">2</div><span class="step-label">Education</span></div>
+      <div class="progress-step" data-step="3"><div class="step-dot">3</div><span class="step-label">Employment</span></div>
+      <div class="progress-step" data-step="4"><div class="step-dot">4</div><span class="step-label">Referees</span></div>
+      <div class="progress-step" data-step="5"><div class="step-dot">5</div><span class="step-label">Addresses</span></div>
+      <div class="progress-step" data-step="6"><div class="step-dot">6</div><span class="step-label">Declaration</span></div>
+    </div>
+
+    <!-- STEP 1: Personal Details -->
+    <div class="form-step active" id="step1">
+      <div class="step-title">Step 1 — Personal Details</div>
+      <div class="step-error" id="err_step1"></div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 150px;">
+          <label>Title *</label>
+          <select id="p_title" required>
+            <option value="">Select…</option>
+            <option>Mr</option>
+            <option>Mrs</option>
+            <option>Ms</option>
+            <option>Dr</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Forename / First name *</label>
+          <input type="text" id="p_firstName" required>
+        </div>
+        <div class="form-group">
+          <label>Surname / Last name *</label>
+          <input type="text" id="p_lastName" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>National Insurance (NI) number *</label>
+        <input type="text" id="p_ni" placeholder="e.g. AB 12 34 56 C" required>
+      </div>
+
+      <div class="form-group">
+        <label>Date of birth *</label>
+        <div class="my-pick">
+          <select id="p_dob_d" required style="flex:1"><option value="">Day</option></select>
+          <select id="p_dob_m" required style="flex:2">
+            <option value="">Month</option>
+            <option value="01">January</option><option value="02">February</option>
+            <option value="03">March</option><option value="04">April</option>
+            <option value="05">May</option><option value="06">June</option>
+            <option value="07">July</option><option value="08">August</option>
+            <option value="09">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+          <select id="p_dob_y" required style="flex:1.5"><option value="">Year</option></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mobile phone number *</label>
+          <input type="tel" id="p_mobile" placeholder="e.g. 07700 900000" required>
+        </div>
+        <div class="form-group">
+          <label>Alternative phone</label>
+          <input type="tel" id="p_alt_phone" placeholder="Optional">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email address *</label>
+        <input type="email" id="p_email" placeholder="your@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label>Current home address *</label>
+        <textarea id="p_address" rows="2" placeholder="House number, street, town / city" required></textarea>
+      </div>
+
+      <div class="form-group" style="max-width:220px;">
+        <label>Postcode *</label>
+        <input type="text" id="p_postcode" placeholder="e.g. WD24 4DA" required>
+      </div>
+
+      <div class="form-group">
+        <label>Where did you hear about this vacancy?</label>
+        <select id="p_referral">
+          <option value="">Please select…</option>
+          <option>Indeed</option>
+          <option>Reed</option>
+          <option>TotalJobs</option>
+          <option>CV-Library</option>
+          <option>Word of mouth / referral</option>
+          <option>HatfieldHome website</option>
+          <option>Social media</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-nav">
+        <span></span>
+        <button class="btn-primary" onclick="nextStep(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Education & Qualifications -->
+    <div class="form-step" id="step2">
+      <div class="step-title">Step 2 — Education &amp; Qualifications</div>
+      <div class="step-error" id="err_step2"></div>
+      <p style="color:var(--ink-mid);margin-bottom:20px;font-size:0.95rem;">Add your relevant educational qualifications starting with the most recent. Include GCSEs, A-Levels, NVQs, degrees, and care-related certifications.</p>
+      <div id="educationList"></div>
+      <button class="add-entry-btn" onclick="addEducation()">+ Add Another Qualification Entry</button>
+      <div class="form-group" style="margin-top:28px;">
+        <label>Other Specialised Training Courses or Certifications</label>
+        <textarea id="otherTraining" rows="3" placeholder="List any additional training, short courses, or certifications not listed above…"></textarea>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Employment History -->
+    <div class="form-step" id="step3">
+      <div class="step-title">Step 3 — Employment History</div>
+      <div class="step-error" id="err_step3"></div>
+
+      <p class="section-label" style="margin-top:0;">Current or Most Recent Employment</p>
+      <div class="dynamic-entry" id="curEmpBlock">
+        <div class="form-group">
+          <label>Employer's name, address &amp; nature of business *</label>
+          <textarea id="cur_employer" rows="2" placeholder="e.g. Sunrise Care Ltd, 12 High Street, London — Residential care provider" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Main duties &amp; responsibilities *</label>
+          <textarea id="cur_duties" rows="2" placeholder="Describe your key duties and responsibilities" required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Employer telephone number</label>
+            <input type="tel" id="cur_phone" placeholder="e.g. 020 7000 0000">
+          </div>
+          <div class="form-group">
+            <label>Position / job title held *</label>
+            <input type="text" id="cur_title" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Employment date from *</label>
+            <div class="my-pick">
+              <select name="cur_start_m" required><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+              <input type="number" name="cur_start_y" placeholder="Year" min="1950" max="2030" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Employment date to (blank if current)</label>
+            <div class="my-pick">
+              <select name="cur_end_m"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+              <input type="number" name="cur_end_y" placeholder="Year" min="1950" max="2030">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Current salary / rate of pay</label>
+            <input type="text" id="cur_salary" placeholder="e.g. £12.50/hr or £28,000 p.a.">
+          </div>
+          <div class="form-group">
+            <label>Notice period required / date available *</label>
+            <input type="text" id="cur_notice" placeholder="e.g. 4 weeks or Immediate" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Reason for leaving / wanting to leave</label>
+          <input type="text" id="cur_reason" placeholder="e.g. Seeking career progression">
+        </div>
+      </div>
+
+      <p class="section-label">Previous Employment History</p>
+      <p style="color:var(--ink-mid);margin-bottom:16px;font-size:0.9rem;">Include all previous roles in reverse chronological order. You <strong>must</strong> account for all gaps of one month or more.</p>
+      <div id="prevEmploymentList"></div>
+      <button class="add-entry-btn" onclick="addPreviousEmployment()">+ Add Another Historical Employment or Gap Entry</button>
+
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevStep(3)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Professional References -->
+    <div class="form-step" id="step4">
+      <div class="step-title">Step 4 — Professional References</div>
+      <div class="step-error" id="err_step4"></div>
+      <p style="color:var(--ink-mid);margin-bottom:8px;font-size:0.95rem;">Provide full details for TWO professional referees. Referee 1 must be your present or most recent employer. Character referees must have known you for at least 2 years, must not be related, and must hold a professional occupation.</p>
+      <p style="color:var(--ink-light);font-size:0.85rem;margin-bottom:24px;">Referees will not be contacted before a formal interview process.</p>
+
+      <p class="section-label" style="margin-top:0;">Referee 1 — Current / Most Recent Employer</p>
+      <div class="dynamic-entry">
+        <div class="form-row">
+          <div class="form-group"><label>Name *</label><input type="text" id="ref1_name" required></div>
+          <div class="form-group"><label>Job title *</label><input type="text" id="ref1_title" required></div>
+        </div>
+        <div class="form-group"><label>Relationship to you *</label><input type="text" id="ref1_rel" placeholder="e.g. Line Manager" required></div>
+        <div class="form-group"><label>Company address *</label><textarea id="ref1_address" rows="2" placeholder="Full company address including company name" required></textarea></div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:200px;"><label>Post code *</label><input type="text" id="ref1_postcode" required></div>
+          <div class="form-group"><label>Telephone number *</label><input type="tel" id="ref1_phone" required></div>
+        </div>
+        <div class="form-group"><label>Email address *</label><input type="email" id="ref1_email" required></div>
+      </div>
+
+      <p class="section-label">Referee 2 — Previous Employer / Character</p>
+      <div class="dynamic-entry">
+        <div class="form-row">
+          <div class="form-group"><label>Name *</label><input type="text" id="ref2_name" required></div>
+          <div class="form-group"><label>Job title *</label><input type="text" id="ref2_title" required></div>
+        </div>
+        <div class="form-group"><label>Relationship to you *</label><input type="text" id="ref2_rel" placeholder="e.g. Previous Manager" required></div>
+        <div class="form-group"><label>Company address *</label><textarea id="ref2_address" rows="2" placeholder="Full company address including company name" required></textarea></div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:200px;"><label>Post code *</label><input type="text" id="ref2_postcode" required></div>
+          <div class="form-group"><label>Telephone number *</label><input type="tel" id="ref2_phone" required></div>
+        </div>
+        <div class="form-group"><label>Email address *</label><input type="email" id="ref2_email" required></div>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevStep(4)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: 5-Year Address History -->
+    <div class="form-step" id="step5">
+      <div class="step-title">Step 5 — 5-Year Address History</div>
+      <div class="step-error" id="err_step5"></div>
+      <p style="color:var(--ink-mid);margin-bottom:20px;font-size:0.95rem;">Required for your DBS check. Please list all <strong>previous</strong> addresses over the last 5 years, starting with your most recent previous residence. Your current address was entered in Step 1.</p>
+      <div id="addressList"></div>
+      <button class="add-entry-btn" onclick="addAddress()">+ Add Another Previous Address Entry</button>
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevStep(5)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(5)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: Personal Declaration & Digital Sign-off -->
+    <div class="form-step" id="step6">
+      <div class="step-title">Step 6 — Personal Declaration &amp; Digital Sign-off</div>
+      <div class="step-error" id="err_step6"></div>
+      <p style="color:var(--ink-mid);margin-bottom:20px;font-size:0.95rem;">By completing this digital sign-off, I declare that to the best of my knowledge the information submitted in this form and accompanying documents is completely true, accurate, and correct.</p>
+      <div class="declaration-box">
+        <div class="check-row">
+          <input type="checkbox" id="decl1">
+          <label for="decl1">I give permission for background enquiries to verify qualifications, training experience, and employment dates.</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="decl2">
+          <label for="decl2">I give explicit permission for the processing of personal data contained in this form for employment purposes under UK GDPR standards.</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="decl3">
+          <label for="decl3">I understand that any job offer may be immediately withdrawn or employment summarily terminated if any information is found to be false or misleading.</label>
+        </div>
+        <!-- PLACEHOLDER — this role involves working with children/young people in an
+             Ofsted-regulated residential setting. Confirm exact Enhanced DBS / barred-list
+             declaration wording with Hatfield before go-live; do not treat this checkbox
+             text as final legal/compliance copy. See docs/decisions/0001. -->
+        <div class="check-row">
+          <input type="checkbox" id="decl4">
+          <label for="decl4">I understand this role involves working with children and young people, that an Enhanced DBS check (including barred list check) is required, and I consent to this being carried out. <em>(placeholder wording — pending confirmation)</em></label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Digital Signature — Type Full Name *</label>
+          <input type="text" id="decl_signature" placeholder="Type your full name to sign" required>
+        </div>
+        <div class="form-group" style="max-width:180px;">
+          <label>Submission Date</label>
+          <input type="text" id="decl_date" readonly style="background:var(--warm);color:var(--ink-light);">
+        </div>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevStep(6)">← Back</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <div class="submit-error" id="submitError"></div>
+          <button class="btn-primary btn-lg" id="submitBtn" onclick="submitApplication()">Submit Completed Application</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /applyWrap -->
+
+  <!-- Success state -->
+  <div class="apply-wrap apply-success" id="applySuccess">
+    <div class="success-icon">
+      <svg width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 style="color:#4a8a44;margin-bottom:12px;">Application Submitted</h2>
+    <p style="color:var(--ink-mid);max-width:440px;margin:0 auto 12px;line-height:1.8;">Thank you — your full application has been received. Our team will be in touch with you shortly to discuss the next steps.</p>
+    <p style="color:var(--ink-light);font-size:0.9rem;">Questions? Email <a href="mailto:Info@hatfieldhome.co.uk" style="color:var(--accent);">Info@hatfieldhome.co.uk</a></p>
+  </div>
+
+</main>
+
+<footer style="background:var(--ink);color:var(--cream);text-align:center;padding:2rem;font-size:0.85rem;">
+  <p>© 2025 HatfieldHome · Caring for Young People · Hatfield, Hertfordshire</p>
+</footer>
+
+<script src="js/portal.config.js"></script>
+<script>
+const SUPABASE_URL  = PORTAL_CONFIG.supabaseUrl;
+const EDGE_BASE     = SUPABASE_URL + '/functions/v1';
+
+let appToken = null;
+let currentStep = 1;
+
+// ---- Init ----
+(async () => {
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = hashParams.get('token') || params.get('token');
+
+  if (urlToken) {
+    sessionStorage.setItem('hatfield_token', urlToken);
+    history.replaceState(null, '', window.location.pathname);
+    appToken = urlToken;
+  } else {
+    appToken = sessionStorage.getItem('hatfield_token');
+  }
+
+  if (!appToken) { showTokenError(); return; }
+
+  try {
+    const res  = await fetch(`${EDGE_BASE}/validate-token`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token: appToken })
+    });
+    const json = await res.json();
+
+    if (!json.valid) { showTokenError(); return; }
+
+    if (json.status === 'form1_complete') {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('alreadySubmitted').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('applySubtitle').textContent =
+      `Applying for: ${json.roleApplied} — Hi ${json.firstName}, please complete all sections below.`;
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('applyWrap').style.display = 'block';
+
+    document.getElementById('decl_date').value = new Date().toLocaleDateString('en-GB');
+    restoreFromStorage();
+
+    if (document.getElementById('educationList').children.length === 0) addEducation();
+    if (document.getElementById('prevEmploymentList').children.length === 0) addPreviousEmployment();
+    if (document.getElementById('addressList').children.length === 0) addAddress();
+
+  } catch(e) {
+    showTokenError();
+  }
+})();
+
+function showTokenError() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('tokenError').style.display = 'block';
+}
+
+// ---- Step navigation ----
+function nextStep(from) {
+  if (!validateStep(from)) return;
+  saveToStorage();
+  setStep(from + 1);
+}
+
+function prevStep(from) {
+  saveToStorage();
+  setStep(from - 1);
+}
+
+function setStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  document.querySelectorAll('.progress-step').forEach(s => {
+    const sn = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (sn < n) s.classList.add('done');
+    if (sn === n) s.classList.add('active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- DOB picker ----
+(function initDOBPicker() {
+  const dd = document.getElementById('p_dob_d');
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = String(d).padStart(2, '0');
+    o.textContent = d;
+    dd.appendChild(o);
+  }
+  const dy = document.getElementById('p_dob_y');
+  const maxYear = new Date().getFullYear() - 16;
+  for (let y = maxYear; y >= 1930; y--) {
+    const o = document.createElement('option');
+    o.value = y;
+    o.textContent = y;
+    dy.appendChild(o);
+  }
+})();
+
+function monthYearPicker(name, req) {
+  const r = req ? 'required' : '';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const opts = months.map((m,i) => `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+  return `<div class="my-pick">
+    <select name="${name}_m" ${r}><option value="">Month</option>${opts}</select>
+    <input type="number" name="${name}_y" placeholder="Year" min="1950" max="2030" ${r}>
+  </div>`;
+}
+
+function getMonthYear(container, prefix) {
+  const m = container.querySelector(`[name="${prefix}_m"]`)?.value;
+  const y = container.querySelector(`[name="${prefix}_y"]`)?.value;
+  return (m && y) ? `${y}-${m}` : '';
+}
+
+// ---- Validation ----
+function validateStep(n) {
+  const step = document.getElementById('step' + n);
+  const errDiv = document.getElementById('err_step' + n);
+  const fields = Array.from(step.querySelectorAll('[required]'))
+    .filter(el => el.offsetParent !== null);
+  const missing = [];
+
+  fields.forEach(el => {
+    const empty = !el.value.trim();
+    el.style.borderColor = empty ? '#c8785a' : '';
+    if (empty) {
+      const label = el.closest('.form-group')?.querySelector('label');
+      const fieldName = label ? label.textContent.replace(/\*/g,'').trim() : (el.placeholder || el.name || 'Field');
+      if (!missing.includes(fieldName)) missing.push(fieldName);
+    }
+  });
+
+  if (missing.length) {
+    errDiv.innerHTML = `<strong>Please complete these required fields before continuing:</strong><ul>${missing.map(f => `<li>${f}</li>`).join('')}</ul>`;
+    errDiv.style.display = 'block';
+    errDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const first = Array.from(fields).find(el => !el.value.trim());
+    setTimeout(() => first && first.focus(), 350);
+    return false;
+  }
+
+  errDiv.style.display = 'none';
+  return true;
+}
+
+// ---- Dynamic: Education ----
+function addEducation() {
+  const list = document.getElementById('educationList');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-entry';
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()" title="Remove">&times;</button>
+    <div class="form-group">
+      <label>Name &amp; address of education establishment *</label>
+      <textarea name="edu_inst_${idx}" rows="2" placeholder="e.g. West Herts College, Hempstead Road, Watford" required></textarea>
+    </div>
+    <div class="form-group">
+      <label>Qualifications achieved &amp; grades *</label>
+      <input type="text" name="edu_qual_${idx}" placeholder="e.g. BSc Health &amp; Social Care — 2:1" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Date from</label>${monthYearPicker(`edu_start_${idx}`, false)}</div>
+      <div class="form-group"><label>Date to</label>${monthYearPicker(`edu_end_${idx}`, false)}</div>
+    </div>`;
+  list.appendChild(div);
+}
+
+// ---- Dynamic: Previous Employment ----
+function addPreviousEmployment() {
+  const list = document.getElementById('prevEmploymentList');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-entry';
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()" title="Remove">&times;</button>
+    <div style="margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" name="prev_gap_${idx}" onchange="toggleGap(this,${idx})"> This is a gap in employment
+      </label>
+    </div>
+    <div id="prev_fields_${idx}">
+      <div class="form-group">
+        <label>Name &amp; address of employer *</label>
+        <textarea name="prev_employer_${idx}" rows="2" placeholder="e.g. BrightCare Ltd, 45 Park Lane, London" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Position held / grade / salary *</label>
+        <input type="text" name="prev_position_${idx}" placeholder="e.g. Support Worker / Band 3 / £11.50 per hour" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Employment date from *</label>${monthYearPicker(`prev_start_${idx}`, true)}</div>
+        <div class="form-group"><label>Employment date to (blank if current)</label>${monthYearPicker(`prev_end_${idx}`, false)}</div>
+      </div>
+      <div class="form-group">
+        <label>Reason for leaving</label>
+        <input type="text" name="prev_reason_${idx}">
+      </div>
+    </div>
+    <div id="prev_gap_fields_${idx}" style="display:none;">
+      <div class="form-row">
+        <div class="form-group"><label>Gap from *</label>${monthYearPicker(`prev_gap_from_${idx}`, false)}</div>
+        <div class="form-group"><label>Gap to *</label>${monthYearPicker(`prev_gap_to_${idx}`, false)}</div>
+      </div>
+      <div class="form-group">
+        <label>Reason for gap *</label>
+        <input type="text" name="prev_gap_reason_${idx}" placeholder="e.g. Caring for a family member">
+      </div>
+    </div>`;
+  list.appendChild(div);
+}
+
+function toggleGap(cb, idx) {
+  document.getElementById('prev_fields_' + idx).style.display = cb.checked ? 'none' : 'block';
+  const gapDiv = document.getElementById('prev_gap_fields_' + idx);
+  gapDiv.style.display = cb.checked ? 'block' : 'none';
+  gapDiv.querySelectorAll('select, input[type=number], input[type=text]').forEach(el => {
+    if (cb.checked) el.setAttribute('required', ''); else el.removeAttribute('required');
+  });
+}
+
+// ---- Dynamic: Address History ----
+function addAddress() {
+  const list = document.getElementById('addressList');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-entry';
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()" title="Remove">&times;</button>
+    <div class="form-group">
+      <label>Full previous home address *</label>
+      <textarea name="addr_full_${idx}" rows="2" placeholder="House number, street, town / city" required></textarea>
+    </div>
+    <div class="form-group" style="max-width:220px;">
+      <label>Post code *</label>
+      <input type="text" name="addr_postcode_${idx}" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Resided from *</label>${monthYearPicker(`addr_from_${idx}`, true)}</div>
+      <div class="form-group"><label>Resided to (blank if still living there)</label>${monthYearPicker(`addr_to_${idx}`, false)}</div>
+    </div>`;
+  list.appendChild(div);
+}
+
+// ---- Collect data ----
+function collectData() {
+  const curEmp = document.getElementById('curEmpBlock');
+
+  const personal = {
+    title:     document.getElementById('p_title').value,
+    ni_number: document.getElementById('p_ni').value.trim(),
+    dob: (()=>{
+      const d = document.getElementById('p_dob_d')?.value;
+      const m = document.getElementById('p_dob_m')?.value;
+      const y = document.getElementById('p_dob_y')?.value;
+      return (d && m && y) ? `${y}-${m}-${d}` : '';
+    })(),
+    mobile:    document.getElementById('p_mobile').value.trim(),
+    alt_phone: document.getElementById('p_alt_phone').value.trim(),
+    email:     document.getElementById('p_email').value.trim(),
+    address:   document.getElementById('p_address').value.trim(),
+    postcode:  document.getElementById('p_postcode').value.trim(),
+    referral:  document.getElementById('p_referral').value,
+  };
+
+  const education = [];
+  document.querySelectorAll('#educationList .dynamic-entry').forEach((el, i) => {
+    const inst = el.querySelector(`[name="edu_inst_${i}"]`)?.value.trim();
+    if (inst) education.push({
+      institution:    inst,
+      qualifications: el.querySelector(`[name="edu_qual_${i}"]`)?.value.trim(),
+      date_from:      getMonthYear(el, `edu_start_${i}`),
+      date_to:        getMonthYear(el, `edu_end_${i}`),
+    });
+  });
+  const other_training = document.getElementById('otherTraining').value.trim();
+
+  const current_employer = {
+    employer_details: document.getElementById('cur_employer').value.trim(),
+    duties:           document.getElementById('cur_duties').value.trim(),
+    employer_phone:   document.getElementById('cur_phone').value.trim(),
+    job_title:        document.getElementById('cur_title').value.trim(),
+    date_from:        getMonthYear(curEmp, 'cur_start'),
+    date_to:          getMonthYear(curEmp, 'cur_end'),
+    salary:           document.getElementById('cur_salary').value.trim(),
+    notice_period:    document.getElementById('cur_notice').value.trim(),
+    reason_leaving:   document.getElementById('cur_reason').value.trim(),
+  };
+
+  const previous_employment = [];
+  document.querySelectorAll('#prevEmploymentList .dynamic-entry').forEach((el, i) => {
+    const isGap = el.querySelector(`[name="prev_gap_${i}"]`)?.checked;
+    if (isGap) {
+      previous_employment.push({
+        type:   'gap',
+        from:   getMonthYear(el, `prev_gap_from_${i}`),
+        to:     getMonthYear(el, `prev_gap_to_${i}`),
+        reason: el.querySelector(`[name="prev_gap_reason_${i}"]`)?.value.trim(),
+      });
+    } else {
+      const emp = el.querySelector(`[name="prev_employer_${i}"]`)?.value.trim();
+      if (emp) previous_employment.push({
+        type:     'employment',
+        employer: emp,
+        position: el.querySelector(`[name="prev_position_${i}"]`)?.value.trim(),
+        from:     getMonthYear(el, `prev_start_${i}`),
+        to:       getMonthYear(el, `prev_end_${i}`),
+        reason:   el.querySelector(`[name="prev_reason_${i}"]`)?.value.trim(),
+      });
+    }
+  });
+
+  const referees = [1, 2].map(n => ({
+    name:            document.getElementById(`ref${n}_name`).value.trim(),
+    job_title:       document.getElementById(`ref${n}_title`).value.trim(),
+    relationship:    document.getElementById(`ref${n}_rel`).value.trim(),
+    company_address: document.getElementById(`ref${n}_address`).value.trim(),
+    postcode:        document.getElementById(`ref${n}_postcode`).value.trim(),
+    phone:           document.getElementById(`ref${n}_phone`).value.trim(),
+    email:           document.getElementById(`ref${n}_email`).value.trim(),
+  }));
+
+  const address_history = [];
+  document.querySelectorAll('#addressList .dynamic-entry').forEach((el, i) => {
+    const full = el.querySelector(`[name="addr_full_${i}"]`)?.value.trim();
+    if (full) address_history.push({
+      full_address: full,
+      postcode:     el.querySelector(`[name="addr_postcode_${i}"]`)?.value.trim(),
+      from:         getMonthYear(el, `addr_from_${i}`),
+      to:           getMonthYear(el, `addr_to_${i}`),
+    });
+  });
+
+  return {
+    ...personal,
+    other_training,
+    current_employer,
+    previous_employment,
+    education,
+    referees,
+    address_history,
+    // keys expected by submit-form1 edge function
+    employment_history: [
+      ...(current_employer.employer_details ? [{ type: 'current', ...current_employer }] : []),
+      ...previous_employment,
+    ],
+    declaration_signature: document.getElementById('decl_signature').value.trim(),
+  };
+}
+
+// ---- localStorage ----
+function saveToStorage() {
+  try { localStorage.setItem('hatfield_apply_' + appToken, JSON.stringify(collectData())); } catch(e) {}
+}
+
+function restoreFromStorage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('hatfield_apply_' + appToken) || 'null');
+    if (!saved) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+    set('p_title',    saved.title);
+    set('p_ni',       saved.ni_number);
+    if (saved.dob) {
+      const parts = saved.dob.split('-');
+      if (parts.length === 3) {
+        set('p_dob_y', parts[0]); set('p_dob_m', parts[1]); set('p_dob_d', parts[2]);
+      }
+    }
+    set('p_mobile',   saved.mobile);
+    set('p_alt_phone',saved.alt_phone);
+    set('p_email',    saved.email);
+    set('p_address',  saved.address);
+    set('p_postcode', saved.postcode);
+    set('p_referral', saved.referral);
+    set('otherTraining', saved.other_training);
+    if (saved.current_employer) {
+      set('cur_employer', saved.current_employer.employer_details);
+      set('cur_duties',   saved.current_employer.duties);
+      set('cur_phone',    saved.current_employer.employer_phone);
+      set('cur_title',    saved.current_employer.job_title);
+      set('cur_salary',   saved.current_employer.salary);
+      set('cur_notice',   saved.current_employer.notice_period);
+      set('cur_reason',   saved.current_employer.reason_leaving);
+    }
+  } catch(e) {}
+}
+
+// ---- Submit ----
+async function submitApplication() {
+  const declErr = document.getElementById('err_step6');
+  if (!document.getElementById('decl1').checked || !document.getElementById('decl2').checked || !document.getElementById('decl3').checked || !document.getElementById('decl4').checked) {
+    declErr.innerHTML = '<strong>Please tick all declaration checkboxes to continue.</strong>';
+    declErr.style.display = 'block';
+    declErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  if (!document.getElementById('decl_signature').value.trim()) {
+    declErr.innerHTML = '<strong>Please type your full name as a signature to continue.</strong>';
+    declErr.style.display = 'block';
+    declErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  declErr.style.display = 'none';
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Submitting…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(EDGE_BASE + '/submit-form1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: appToken, details: collectData() })
+    });
+    const json = await res.json();
+    if (res.ok && json.success) {
+      localStorage.removeItem('hatfield_apply_' + appToken);
+      sessionStorage.removeItem('hatfield_token');
+      document.getElementById('applyWrap').style.display = 'none';
+      document.getElementById('applySuccess').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      throw new Error(json.error || 'Submission failed');
+    }
+  } catch(e) {
+    btn.textContent = 'Submit Completed Application';
+    btn.disabled = false;
+    const subErr = document.getElementById('submitError');
+    subErr.textContent = 'Submission failed: ' + e.message + '. Please try again or email Info@hatfieldhome.co.uk.';
+    subErr.style.display = 'block';
+    subErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+</script>
+</body>
+</html>

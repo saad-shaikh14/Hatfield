@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Competency Test — HatfieldHome</title>
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Jost:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Jost,Arial,sans-serif;background:#f5f2ed;color:#1a1612;min-height:100vh}
+.top-bar{background:#faf8f5;border-bottom:1px solid #e5ddd5;padding:14px 24px;display:flex;align-items:center;gap:12px}
+.top-bar .logo{font-family:'Gilda Display',serif;font-size:1.1rem}
+.top-bar .logo span{color:#c8785a}
+.top-bar .title{font-size:1rem;font-weight:700;color:#1a1612;margin-left:8px}
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+#loadScreen,#errorScreen,#doneScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:16px}
+#testScreen{display:none}
+.state-icon{font-size:3rem}
+.state-title{font-size:1.4rem;font-weight:800;color:#1a1612}
+.state-sub{color:#4a4440;font-size:0.95rem;max-width:480px;line-height:1.7}
+.candidate-banner{background:#fff;border:1px solid #e5ddd5;border-radius:12px;padding:18px 22px;margin-bottom:28px;display:flex;align-items:center;gap:14px}
+.candidate-avatar{width:44px;height:44px;border-radius:50%;background:#c8785a;color:#fff;font-weight:800;font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.candidate-info .name{font-weight:800;font-size:1rem;color:#1a1612}
+.candidate-info .role{font-size:0.83rem;color:#9a928c;margin-top:2px}
+.progress-bar{height:6px;background:#e5ddd5;border-radius:3px;margin-bottom:28px;overflow:hidden}
+.progress-fill{height:100%;background:#c8785a;border-radius:3px;transition:width 0.3s}
+.section-label{font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#c8785a;margin-bottom:6px}
+.section-title{font-size:1.1rem;font-weight:800;color:#1a1612;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #f0ebe5}
+.q-card{background:#fff;border:1px solid #e5ddd5;border-radius:12px;padding:22px 24px;margin-bottom:14px;transition:border-color 0.2s}
+.q-card.answered{border-color:#c8785a44}
+.q-num{font-size:0.78rem;font-weight:700;color:#c8785a;margin-bottom:8px}
+.q-text{font-size:0.95rem;font-weight:600;color:#1a1612;line-height:1.6;margin-bottom:16px}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:10px 14px;border-radius:8px;border:1.5px solid #e5e7eb;transition:border-color 0.15s,background 0.15s;font-size:0.88rem;line-height:1.5}
+.opt-label:hover{border-color:#c8785a;background:#fdf2ee}
+.opt-label.selected{border-color:#c8785a;background:#fdf2ee}
+.opt-label input[type=radio]{width:16px;height:16px;accent-color:#c8785a;flex-shrink:0;margin-top:2px}
+.opt-key{font-weight:700;color:#c8785a;min-width:14px}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:28px;gap:12px;flex-wrap:wrap}
+.btn-nav{padding:12px 28px;border-radius:50px;font-family:Jost,Arial,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;border:none;transition:background 0.2s,transform 0.2s}
+.btn-back{background:#f3f4f6;color:#374151}
+.btn-back:hover{background:#e5e7eb}
+.btn-next{background:#c8785a;color:#fff}
+.btn-next:hover{background:#b3623f;transform:translateY(-1px)}
+.btn-next:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.unanswered-note{font-size:0.82rem;color:#c8785a;text-align:center;margin-top:10px;display:none}
+.score-card{background:#fff;border-radius:16px;border:1px solid #e5ddd5;padding:32px;margin-bottom:24px;text-align:center}
+.score-big{font-size:3.5rem;font-weight:800;line-height:1}
+.score-label{font-size:1rem;font-weight:700;margin-top:6px}
+.score-threshold{font-size:0.82rem;color:#9a928c;margin-top:4px}
+.score-pass{color:#166534}.score-fail{color:#991b1b}
+.section-results{background:#fff;border-radius:12px;border:1px solid #e5ddd5;overflow:hidden}
+.sr-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid #f0ebe5;font-size:0.88rem}
+.sr-row:last-child{border-bottom:none}
+.sr-name{color:#374151}.sr-score{font-weight:700;color:#1a1612}
+@media(max-width:480px){.wrap{padding:20px 14px 80px}.q-card{padding:16px}.btn-nav{padding:11px 20px}}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="logo">Hatfield<span>Home</span></span>
+  <span class="title">Pre-Interview Competency Test</span>
+</div>
+
+<div class="wrap">
+
+<div id="loadScreen">
+  <div class="state-icon">⏳</div>
+  <div class="state-title">Loading your test…</div>
+</div>
+
+<div id="errorScreen" style="display:none">
+  <div class="state-icon">⚠</div>
+  <div class="state-title" id="errTitle">Link not valid</div>
+  <div class="state-sub" id="errMsg">This test link is not valid. Please contact HatfieldHome at Info@hatfieldhome.co.uk.</div>
+</div>
+
+<div id="testScreen" style="display:none">
+  <div class="candidate-banner">
+    <div class="candidate-avatar" id="candidateInitial">?</div>
+    <div class="candidate-info">
+      <div class="name" id="candidateName"></div>
+      <div class="role" id="candidateRole"></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div id="sectionContent"></div>
+  <div class="nav-row">
+    <button class="btn-nav btn-back" id="btnBack" onclick="prevSection()" style="display:none">← Back</button>
+    <button class="btn-nav btn-next" id="btnNext" onclick="nextSection()">Next →</button>
+  </div>
+  <p class="unanswered-note" id="unansweredNote">Please answer all questions before continuing.</p>
+</div>
+
+<div id="doneScreen" style="display:none">
+  <div id="doneContent" style="width:100%;max-width:600px"></div>
+</div>
+
+</div>
+
+<script>
+/* #############################################################################
+ * TODO — BLOCKING, DO NOT GO LIVE WITH THIS FILE AS-IS.
+ *
+ * These questions are PLACEHOLDERS ONLY, copied in shape (not content) from
+ * trust_us's adult domiciliary/complex-care competency test. HatfieldHome is
+ * an Ofsted-regulated children's/young-people's residential care provider —
+ * its real competency test needs safeguarding-of-children, EBD, and
+ * residential-care content authored or reviewed by whoever owns Hatfield's
+ * Ofsted compliance policy. The ANSWER_KEY in supabase/functions/submit-mcq
+ * must be updated to match whatever real questions replace these, in the
+ * same order. Do not let this ship to real candidates unedited.
+ * ############################################################################# */
+const EDGE_BASE = 'https://nnshgtrvtdynkqvfbvfi.supabase.co/functions/v1'
+const KEYS = ['a','b','c','d']
+const hashParams = new URLSearchParams(location.hash.slice(1))
+const urlToken = hashParams.get('token') || new URLSearchParams(location.search).get('token')
+if (urlToken) {
+  sessionStorage.setItem('hatfield_test_token', urlToken)
+  history.replaceState(null, '', location.pathname)
+}
+const TOKEN = urlToken || sessionStorage.getItem('hatfield_test_token')
+let _firstName = ''
+let _sectionIdx = 0
+let _answers = {}
+
+const SECTIONS = [
+  { key:'placeholder_1', name:'PLACEHOLDER — Safeguarding &amp; Child Protection', questions:[
+    { t:'[PLACEHOLDER] A young person discloses that another resident has been hurting them. What is the correct first action?',
+      o:['[PLACEHOLDER option A]','[PLACEHOLDER option B — correct]','[PLACEHOLDER option C]','[PLACEHOLDER option D]'] },
+    { t:'[PLACEHOLDER] What does "Promoting Independence" mean in a residential setting for young people?',
+      o:['[PLACEHOLDER option A]','[PLACEHOLDER option B]','[PLACEHOLDER option C]','[PLACEHOLDER option D]'] },
+    { t:'[PLACEHOLDER] What is an example of person-centred, trauma-informed care?',
+      o:['[PLACEHOLDER option A]','[PLACEHOLDER option B]','[PLACEHOLDER option C]','[PLACEHOLDER option D]'] },
+    { t:'[PLACEHOLDER] Under Working Together to Safeguard Children, who must you report a concern to?',
+      o:['[PLACEHOLDER option A]','[PLACEHOLDER option B]','[PLACEHOLDER option C]','[PLACEHOLDER option D]'] }
+  ]},
+  { key:'placeholder_2', name:'PLACEHOLDER — Behaviour Support &amp; De-escalation', questions:[
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] }
+  ]},
+  { key:'placeholder_3', name:'PLACEHOLDER — Health, Medication &amp; Risk', questions:[
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] }
+  ]},
+  { key:'placeholder_4', name:'PLACEHOLDER — Emergency Situations &amp; Health/Safety', questions:[
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] }
+  ]},
+  { key:'placeholder_5', name:'PLACEHOLDER — Communication &amp; Professional Conduct', questions:[
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] },
+    { t:'[PLACEHOLDER question]', o:['[PLACEHOLDER A]','[PLACEHOLDER B]','[PLACEHOLDER C]','[PLACEHOLDER D]'] }
+  ]}
+]
+
+function globalIdx(si, li) {
+  let g = 0; for (let i = 0; i < si; i++) g += SECTIONS[i].questions.length; return g + li
+}
+function totalQ() { return SECTIONS.reduce((n,s) => n + s.questions.length, 0) }
+function answeredCount() { return Object.keys(_answers).length }
+
+async function init() {
+  if (!TOKEN) { showError('Invalid Link','No test token found in this URL.'); return }
+  try {
+    const res = await fetch(EDGE_BASE + '/validate-token', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token: TOKEN })
+    })
+    const d = await res.json()
+    if (!d.valid) { showError('Link Not Valid','This link is not valid. Please contact HatfieldHome at Info@hatfieldhome.co.uk.'); return }
+    if (d.status !== 'interview_invited') {
+      showError('Test Not Available','This test is not currently available. Please contact HatfieldHome at Info@hatfieldhome.co.uk.'); return
+    }
+    _firstName = d.firstName
+    document.getElementById('candidateInitial').textContent = d.firstName.charAt(0).toUpperCase()
+    document.getElementById('candidateName').textContent = d.firstName
+    document.getElementById('candidateRole').textContent = d.roleApplied
+    document.getElementById('loadScreen').style.display = 'none'
+    document.getElementById('testScreen').style.display = 'block'
+    renderSection()
+  } catch(e) { showError('Error','Could not load test. Please try again or email Info@hatfieldhome.co.uk.') }
+}
+
+function showError(title, msg) {
+  document.getElementById('loadScreen').style.display = 'none'
+  document.getElementById('errTitle').textContent = title
+  document.getElementById('errMsg').textContent = msg
+  document.getElementById('errorScreen').style.display = 'flex'
+}
+
+function renderSection() {
+  const s = SECTIONS[_sectionIdx]
+  const isLast = _sectionIdx === SECTIONS.length - 1
+  document.getElementById('progressFill').style.width = (answeredCount() / totalQ() * 100) + '%'
+  document.getElementById('btnBack').style.display = _sectionIdx > 0 ? 'block' : 'none'
+  const btn = document.getElementById('btnNext')
+  btn.textContent = isLast ? 'Submit Test' : 'Next →'
+  btn.disabled = false
+
+  let html = '<div class="section-label">Section ' + (_sectionIdx+1) + ' of ' + SECTIONS.length + '</div>'
+             + '<div class="section-title">' + s.name + '</div>'
+
+  s.questions.forEach((q, li) => {
+    const gi = globalIdx(_sectionIdx, li)
+    const sel = _answers[gi]
+    html += '<div class="q-card' + (sel !== undefined ? ' answered' : '') + '" id="qcard-' + gi + '">'
+          + '<div class="q-num">Question ' + (gi+1) + '</div>'
+          + '<div class="q-text">' + q.t + '</div><div class="options">'
+    q.o.forEach((opt, oi) => {
+      const k = KEYS[oi]
+      const isSel = sel === k
+      html += '<label class="opt-label' + (isSel ? ' selected' : '') + '" onclick="pick(' + gi + ',\'' + k + '\',this)">'
+            + '<input type="radio" name="q' + gi + '" value="' + k + '"' + (isSel ? ' checked' : '') + '>'
+            + '<span class="opt-key">' + k.toUpperCase() + '.</span><span>' + opt + '</span></label>'
+    })
+    html += '</div></div>'
+  })
+
+  document.getElementById('sectionContent').innerHTML = html
+  document.getElementById('unansweredNote').style.display = 'none'
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function pick(gi, key, labelEl) {
+  _answers[gi] = key
+  const card = document.getElementById('qcard-' + gi)
+  if (card) {
+    card.classList.add('answered')
+    card.querySelectorAll('.opt-label').forEach(l => l.classList.remove('selected'))
+    card.querySelectorAll('input[type=radio]').forEach(r => r.checked = false)
+  }
+  labelEl.classList.add('selected')
+  labelEl.querySelector('input').checked = true
+  document.getElementById('progressFill').style.width = (answeredCount() / totalQ() * 100) + '%'
+}
+
+function sectionDone() {
+  const s = SECTIONS[_sectionIdx]
+  for (let li = 0; li < s.questions.length; li++) {
+    if (_answers[globalIdx(_sectionIdx, li)] === undefined) return false
+  }
+  return true
+}
+
+function nextSection() {
+  if (!sectionDone()) { document.getElementById('unansweredNote').style.display = 'block'; return }
+  document.getElementById('unansweredNote').style.display = 'none'
+  if (_sectionIdx < SECTIONS.length - 1) { _sectionIdx++; renderSection() } else { submitTest() }
+}
+
+function prevSection() { if (_sectionIdx > 0) { _sectionIdx--; renderSection() } }
+
+async function submitTest() {
+  const btn = document.getElementById('btnNext')
+  btn.disabled = true; btn.textContent = 'Submitting…'
+  const answers = []
+  for (let i = 0; i < totalQ(); i++) answers.push(_answers[i] || '')
+  try {
+    const res = await fetch(EDGE_BASE + '/submit-mcq', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ token: TOKEN, answers })
+    })
+    const d = await res.json()
+    if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status)
+    showResults(d.score, d.passed, d.section_scores)
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Submit Test'
+    const note = document.getElementById('unansweredNote')
+    note.textContent = 'Submission failed: ' + e.message
+    note.style.display = 'block'
+  }
+}
+
+function showResults(score, passed, ss) {
+  document.getElementById('testScreen').style.display = 'none'
+  document.getElementById('doneContent').innerHTML =
+    '<div style="background:#fff;border-radius:16px;border:1px solid #e5ddd5;padding:40px 32px;text-align:center">'
+    + '<div style="font-size:3rem;margin-bottom:16px">✓</div>'
+    + '<div style="font-size:1.4rem;font-weight:800;color:#1a1612;margin-bottom:10px">Test Submitted</div>'
+    + '<p style="color:#4a4440;font-size:0.95rem;line-height:1.7;max-width:400px;margin:0 auto">'
+    + 'Thank you, ' + _firstName + '. Your answers have been submitted to HatfieldHome.<br><br>'
+    + 'You will be contacted regarding your application. If you have any questions, please email <strong>Info@hatfieldhome.co.uk</strong>.</p>'
+    + '</div>'
+  document.getElementById('doneScreen').style.display = 'flex'
+}
+
+init()
+</script>
+</body>
+</html>

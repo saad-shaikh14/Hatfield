@@ -1,0 +1,41 @@
+name: Supabase Keep-Alive & Health Check
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # daily at 08:00 UTC — well under Supabase's 7-day pause window
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      # Pings the validate-token Edge Function rather than querying a table
+      # directly via REST: anon has no grant on hatfield_applications (see
+      # supabase/migrations/20260801100000_initial_schema.sql), so a direct
+      # REST call would always 401/permission-denied even when healthy.
+      # validate-token is public and always returns 200 with {"valid":false}
+      # for an unknown token, which still proves the DB + Edge Runtime are up.
+      - name: Ping Supabase Edge Function
+        id: ping
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "https://nnshgtrvtdynkqvfbvfi.supabase.co/functions/v1/validate-token" \
+            -H "Content-Type: application/json" \
+            -d "{\"token\":\"keep-alive-health-check\"}")
+          echo "http_status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "Health check returned HTTP $STATUS"
+
+      - name: Alert if unhealthy
+        if: steps.ping.outputs.http_status != '200'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          curl -s -X POST "https://api.resend.com/emails" \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"HatfieldHome Portal <noreply@hatfieldhome.co.uk>\",
+              \"to\": \"Info@hatfieldhome.co.uk\",
+              \"subject\": \"HatfieldHome Portal Health Check Failed (HTTP ${{ steps.ping.outputs.http_status }})\",
+              \"html\": \"<p>The daily automated health check for the HatfieldHome job portal database returned HTTP ${{ steps.ping.outputs.http_status }} instead of 200.</p><p>This usually means the Supabase project has paused or is unreachable — candidates may not be able to submit job applications until this is resolved.</p><p>To restore: log into <a href='https://supabase.com/dashboard/project/nnshgtrvtdynkqvfbvfi'>the Supabase dashboard</a> and click Restore, or contact Saad.</p>\"
+            }"
